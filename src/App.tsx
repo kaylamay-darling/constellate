@@ -6,15 +6,23 @@ function App() {
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      height: '100vh'
+      height: '100vh',
+      width: '100vw',
+      overflow: 'hidden'
     }}>
-      <Navigation />
-      <div style={{ display: 'flex', flex: 1 }}>
+
+      <header style={{ padding: 'var(--spacing-md)' }}>
+        <Navigation />
+      </header>
+
+      <aside style={{
+        padding: '0 var(--spacing-md) var(--spacing-md) var(--spacing-md)',
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
         <Sidebar />
-        <main style={{ flex: 1, padding: 'var(--spacing-lg)' }}>
-          <h1>Explore your stars</h1>
-        </main>
-      </div>
+      </aside>
     </div>
   );
 }
