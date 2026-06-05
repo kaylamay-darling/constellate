@@ -1,44 +1,43 @@
 import GlassContainer from './GlassContainer';
+import constellateIcon from '../assets/constellate-icon.png';
+import styles from './Navigation.module.css';
 
-export default function Navigation() {
+interface NavigationProps {
+    currentPage?: 'Asterism' | 'Support';
+}
+
+export default function Navigation({ currentPage = 'Asterism' }: NavigationProps) {
     return (
-        <GlassContainer
-            className="glass-nav"
-            style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr auto 1fr',
-                alignItems: 'center',
-                padding: 'var(--spacing-sm) var(--spacing-lg)',
-                position: 'sticky',
-                top: 0,
-            }}
-        >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-                <div style={{
-                    width: '20px',
-                    height: '20px',
-                    background: 'var(--accent-highlight)',
-                    borderRadius: '2px'
-                }} />
-                <h3 style={{ margin: 0 }}>CONSTELLATE</h3>
+        <GlassContainer className={styles.container}>
+            <div className={styles.logoArea}>
+                <img
+                    src={constellateIcon}
+                    alt="Constellate Logo"
+                    className={styles.icon}
+                />
+                <span className={styles.logoText}>CONSTELLATE</span>
             </div>
 
-            <nav style={{
-                display: 'flex',
-                gap: 'var(--spacing-lg)',
-                color: 'var(--text-muted)'
-            }}>
-                <span>Asterism</span>
-                <span>Support</span>
+            <nav className={styles.navLinks}>
+                <span
+                    className={`${styles.navLink} ${currentPage === 'Asterism' ? styles.navLinkActive : ''}`}
+                    aria-current={currentPage === 'Asterism' ? 'page' : undefined}
+                    tabIndex={0}
+                >
+                    Asterism
+                </span>
+                <span
+                    className={`${styles.navLink} ${currentPage === 'Support' ? styles.navLinkActive : ''}`}
+                    aria-current={currentPage === 'Support' ? 'page' : undefined}
+                    tabIndex={0}
+                >
+                    Support
+                </span>
             </nav>
 
-            <div style={{
-                justifySelf: 'end',
-                color: 'var(--text-primary)',
-                fontWeight: 600,
-                cursor: 'pointer'
-            }}>
-                Sign In
+            <div className={styles.actionArea}
+            tabIndex={0}>
+                Sign in
             </div>
         </GlassContainer>
     );

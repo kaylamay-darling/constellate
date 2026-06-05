@@ -3,21 +3,34 @@
 :root {
   --background-primary: #0a0a0c;
   --background-surface: rgba(255, 255, 255, 0.05);
-  
+
   --accent-dark: #2d1b4e;
   --accent-highlight: #8b75e6;
-  
+
   --text-primary: #e0e0ff;
   --text-muted: #8888aa;
-  
-  --glass-effect: backdrop-filter: blur(12px);
+  --text-celestial: hsla(240, 100%, 95%, 0.9);
+  --cta-text: #b8a9ff;
+
+  --text-primary-hover: #b0b0cc;
+  --text-muted-hover: #555577;
+  --text-celestial-hover: hsla(240, 60%, 80%, 0.7);
+  --cta-text-hover: #5d4e9e;
+
+  --filter-celestial: invert(1) brightness(0.9) sepia(1) saturate(2) hue-rotate(200deg);
+
   --border-subtle: 1px solid rgba(255, 255, 255, 0.1);
-  
+  --border-glow: 1px solid rgba(139, 117, 230, 0.3);
+  --celestial-glow: rgba(138, 43, 226, 0.4);
+
+  --blur-radius: 6px;
+
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
-  
+  --spacing-xl: 32px;
+
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -34,9 +47,10 @@ body {
 }
 
 .glass-panel {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(var(--blur-radius));
+  -webkit-backdrop-filter: blur(var(--blur-radius));
   border: var(--border-subtle);
   border-radius: 12px;
+  box-shadow: 0 0 5px var(--celestial-glow), inset 0 0 10px rgba(255, 255, 255, 0.05);
 }

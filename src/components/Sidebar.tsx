@@ -1,23 +1,45 @@
-// src/components/Sidebar.tsx
 import GlassContainer from './GlassContainer';
+import styles from './Sidebar.module.css';
 
-export default function Sidebar() {
+type NavAction =
+    | { type: 'MODAL'; modalId: 'journal' | 'sobriety-manage' | 'sobriety-track' | 'rescue-aid' }
+    | { type: 'LINK'; path: string };
+
+interface SidebarItem {
+    id: string;
+    label: string;
+    action: NavAction;
+}
+
+const sidebarItems: SidebarItem[] = [
+    { id: 'journal', label: 'Journal Entry', action: { type: 'MODAL', modalId: 'journal' } },
+    { id: 'manage-sobriety', label: 'Manage Sobriety', action: { type: 'MODAL', modalId: 'sobriety-manage' } },
+    { id: 'track-sobriety', label: 'Sobriety Tracking', action: { type: 'MODAL', modalId: 'sobriety-track' } },
+    { id: 'rescue-aid', label: 'Rescue Aid', action: { type: 'MODAL', modalId: 'rescue-aid' } }
+];
+
+interface SidebarProps {
+    onAction: (action: NavAction) => void;
+}
+
+export default function Sidebar({ onAction }: SidebarProps) {
     return (
-        <GlassContainer
-            style={{
-                width: '240px',
-                height: '100%',
-                padding: 'var(--spacing-md)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 'var(--spacing-md)',
-            }}
-        >
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-                <a href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Constellations</a>
-                <a href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Journal</a>
-                <a href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Analytics</a>
-            </nav>
-        </GlassContainer>
+        <nav className={styles.sidebar}>
+            <GlassContainer className={styles.sidebarContainer}>
+                <span className={styles.sidebarTitle}>Dashboard</span>
+
+                {sidebarItems.map((item) => (
+                    <button
+                        key={item.id}
+                        className={styles.glassCard}
+                        onClick={() => onAction(item.action)}
+                        type="button"
+                    >
+                        <span className={styles.icon}>✧</span>
+                        <span>{item.label}</span>
+                    </button>
+                ))}
+            </GlassContainer>
+        </nav>
     );
 }
