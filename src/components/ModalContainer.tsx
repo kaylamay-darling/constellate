@@ -17,7 +17,7 @@ export default function ModalContainer({ children, onClose }: ModalContainerProp
     }, [onClose]);
 
     return (
-        <div className={styles.overlay}>
+        <div className={styles.overlay} onClick={onClose}>
             <div
                 className={styles.modalContent}
                 onClick={(e) => e.stopPropagation()}

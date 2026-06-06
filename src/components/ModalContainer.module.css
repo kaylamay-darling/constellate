@@ -1,25 +1,45 @@
 .overlay {
-    position: fixed;
-    width: 100vw;
-    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
-    align-items: center;
     justify-content: center;
-    z-index: 1000;
+    align-items: center;
+    z-index: 100;
+    padding: var(--spacing-md);
+    box-sizing: border-box;
+}
 
-    pointer-events: none;
+.modal {
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+
+    background: var(--background-surface);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-md);
+
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .modalContent {
     width: 90%;
     max-width: 600px;
     animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+
+    pointer-events: auto;
+    overflow-x: hidden;
 }
 
 .glassInterior {
     width: 100%;
     max-height: 80vh;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 @keyframes popIn {
@@ -31,5 +51,12 @@
     100% {
         opacity: 1;
         transform: scale(1);
+    }
+}
+
+@media (max-width: 600px) {
+    .modalContent {
+        width: 100%;
+        max-width: none;
     }
 }

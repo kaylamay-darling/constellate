@@ -37,7 +37,7 @@ export default function Sidebar({ onAction, activeView }: SidebarProps) {
     return (
         <GlassContainer className={styles.container}>
             <div className={styles.sidebar}>
-                <div className={styles.sidebarHeader}>Dashboard</div>
+                <h3 className={styles.sidebarHeader}>Dashboard</h3>
 
                 {sidebarItems.map((item) => (
                     <button
