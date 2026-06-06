@@ -7,7 +7,7 @@
 }
 
 .welcomeText {
-    font-size: 2rem;
+    font-size: var(--font-size-xl);
     font-family: var(--font-family-primary);
     color: var(--text-celestial);
     margin: 0;

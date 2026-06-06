@@ -17,9 +17,77 @@
     border-radius: var(--spacing-sm);
 }
 
-.section span {
+.sectionHeader {
     font-family: var(--font-family-primary);
     color: var(--text-primary);
+}
+
+.subSection {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.subSectionInline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.subSectionHeader {
+    font-family: var(--font-family-primary);
+    font-weight: 500;
+    color: var(--text-intermediate);
+    text-transform: uppercase;
+    opacity: 0.6;
+}
+
+.moodPicker {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.moodItem {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    font-size: var(--font-size-lg);
+    transition: all 0.3s ease;
+
+    opacity: 0.3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.moodItem:hover {
+    opacity: 0.7;
+}
+
+.moodItem.active {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.sliderRow {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sliderControlContainer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.valueDisplay {
+    width: 30px;
+    text-align: right;
+    font-family: monospace;
+    color: var(--text-intermediate);
+    font-size: var(--font-size-md);
 }
 
 .textarea {

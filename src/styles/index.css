@@ -7,6 +7,7 @@
   --accent-highlight: #8b75e6;
 
   --text-primary: #e0e0ff;
+  --text-intermediate: #b3b3d6;
   --text-muted: #8888aa;
   --text-celestial: hsla(240, 100%, 95%, 0.9);
   --cta-text: #b8a9ff;
@@ -35,6 +36,11 @@
 
   --font-family-primary: "Cormorant Garamond", serif;
   --font-family-secondary: 'Inter', sans-serif;
+
+  --font-size-sm: 0.75rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.5rem;
+  --font-size-xl: 2rem;
 }
 
 body {
@@ -86,7 +92,7 @@ body {
   margin: 0 0 var(--spacing-md) 0;
   color: var(--text-celestial);
   font-family: var(--font-family-secondary);
-  font-size: 1.5rem;
+  font-size: var(--font-size-lg);
 }
 
 .modal-content p {
