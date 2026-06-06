@@ -5,6 +5,7 @@ import ToolWrapper from './components/ToolWrapper';
 import WelcomeSection from './components/WelcomeSection';
 
 import Journal from './components/Journal';
+import { AddictionManager } from './components/AddictionManager';
 
 import styles from './App.module.css';
 
@@ -22,11 +23,7 @@ const TOOL_LABELS: Record<ModalID, string> = {
   'rescue-aid': 'Rescue Aid',
 };
 
-const ManageSobriety = () => (
-  <div>
-    <p>Manage your sobriety plans here.</p>
-  </div>
-);
+
 
 const SobrietyTracking = () => (
   <div>
@@ -77,7 +74,7 @@ function App() {
   const renderTool = (): ReactNode => {
     switch (activeView) {
       case 'journal': return <Journal />;
-      case 'sobriety-manage': return <ManageSobriety />;
+      case 'sobriety-manage': return <AddictionManager />;
       case 'sobriety-track': return <SobrietyTracking />;
       case 'rescue-aid': return <RescueAid />;
       default: return null;

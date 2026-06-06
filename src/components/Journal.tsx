@@ -49,7 +49,8 @@ export default function Journal() {
                 <span className={styles.sectionHeader}>Daily Pulse</span>
 
                 <div className={styles.subSectionInline}>
-                    <span className={styles.subSectionHeader}>Mood</span>
+                    <span className={styles.subSectionHeader}
+                    title="How are you feeling right now?">Mood</span>
                     <div className={styles.moodPicker}>
                         <div className={`${styles.moodItem} ${mood === 1 ? styles.active : ''}`} onClick={() => setMood(1)}>😢</div>
                         <div className={`${styles.moodItem} ${mood === 2 ? styles.active : ''}`} onClick={() => setMood(2)}>🙁</div>
@@ -61,7 +62,8 @@ export default function Journal() {
 
                 <div className={styles.subSection}>
                     <div className={styles.sliderRow}>
-                        <span className={styles.subSectionHeader}>Emotional Intensity</span>
+                        <span className={styles.subSectionHeader}
+                        title="How overwhelming do your emotions feel?">Emotional Intensity</span>
                         <div className={styles.sliderControlContainer}>
                             <PulseSlider value={affect} onChange={setAffect} gradient="#ADD8E6, #8B0000" />
                             <span className={styles.valueDisplay}>{affect ? Math.round(affect) : "--"}</span>
@@ -71,7 +73,8 @@ export default function Journal() {
 
                 <div className={styles.subSection}>
                     <div className={styles.sliderRow}>
-                        <span className={styles.subSectionHeader}>Energy Level</span>
+                        <span className={styles.subSectionHeader}
+                            title="How motivated or energized do you feel?">Energy Level</span>
                         <div className={styles.sliderControlContainer}>
                             <PulseSlider value={energy} onChange={setEnergy} gradient="#ffffff, #eee72c" />
                             <span className={styles.valueDisplay}>{energy ? Math.round(energy) : "--"}</span>
@@ -81,7 +84,8 @@ export default function Journal() {
 
                 <div className={styles.subSection}>
                     <div className={styles.sliderRow}>
-                        <span className={styles.subSectionHeader}>Anxiety</span>
+                        <span className={styles.subSectionHeader}
+                        title="How loud are your thoughts, or how oppressing is your panic?">Anxiety</span>
                         <div className={styles.sliderControlContainer}>
                             <PulseSlider value={anxiety} onChange={setAnxiety} gradient="#5baf58, #ab763e" />
                             <span className={styles.valueDisplay}>{anxiety ? Math.round(anxiety) : "--"}</span>

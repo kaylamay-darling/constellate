@@ -5,6 +5,8 @@
     padding: var(--spacing-sm);
     box-sizing: border-box;
     min-width: 0;
+
+    overflow: visible;
 }
 
 .section {
@@ -15,6 +17,8 @@
     gap: var(--spacing-md);
     border: 1px solid var(--glassmorphism-shadow);
     border-radius: var(--spacing-sm);
+
+    overflow: visible;
 }
 
 .sectionHeader {
@@ -37,10 +41,13 @@
 
 .subSectionHeader {
     font-family: var(--font-family-primary);
-    font-weight: 500;
+    font-size: var(--font-size-sm);
     color: var(--text-intermediate);
     text-transform: uppercase;
     opacity: 0.6;
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.4);
+    transition: color 0.2s ease;
+    cursor: help;
 }
 
 .moodPicker {

@@ -1,0 +1,83 @@
+.addictionWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm);
+    box-sizing: border-box;
+    min-width: 0;
+
+    overflow: visible;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    background: var(--glassmorphism-shadow);
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
+    border: 1px solid var(--glassmorphism-shadow);
+    border-radius: var(--spacing-sm);
+
+    overflow: visible;
+}
+
+.sectionHeader {
+    font-family: var(--font-family-primary);
+    color: var(--text-primary);
+}
+
+.addButton {
+    width: 100%;
+    background: var(--accent-dark);
+    border: 1px solid var(--cta-text-hover);
+    color: var(--cta-text);
+    border-radius: var(--spacing-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-family-secondary);
+    text-align: left;
+}
+
+.addButton:not(.open):hover {
+    background: var(--background-surface);
+    border-color: var(--cta-text);
+}
+
+.buttonHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: var(--spacing-md);
+}
+
+.closeX {
+    font-size: 12px;
+    opacity: 0.6;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.closeX:hover {
+    opacity: 1;
+}
+
+.list {
+    max-height: 160px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    cursor: default;
+}
+
+.listItem {
+    background: var(--glassmorphism-shadow);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    text-align: left;
+    padding: var(--spacing-md);
+}
+
+.listItem:hover {
+    background: rgba(266, 266, 266, 0.03);
+}
