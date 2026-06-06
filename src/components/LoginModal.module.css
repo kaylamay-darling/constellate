@@ -1,0 +1,88 @@
+.toolContent {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: var(--spacing-sm);
+}
+
+.title {
+    color: var(--text-primary);
+    font-family: var(--font-family-primary);
+    padding: 0 var(--spacing-md);
+    margin: 0;
+}
+
+.closeBtn {
+    background: var(--glassmorphism-background);
+    border: 1px solid var(--glassmorphism-highlight);
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin: var(--spacing-md) var(--spacing-md) 0 var(--spacing-md);
+    border-radius: var(--spacing-sm);
+    transition: background 0.2s;
+    font-family: var(--font-family-primary);
+}
+
+.closeBtn:hover {
+    background: var(--glassmorphism-shadow);
+}
+
+.body {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 0 var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.body p {
+    margin: 0;
+    color: var(--text-muted);
+    font-family: var(--font-family-primary);
+    line-height: 1.5;
+}
+
+.loginButton {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    background: var(--accent-dark);
+    border: 1px solid var(--accent-highlight);
+    color: var(--cta-text);
+    border-radius: var(--spacing-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-family-secondary);
+}
+
+.loginButton:hover {
+    background: var(--accent-highlight);
+    color: var(--background-primary);
+    box-shadow: 0 0 10px var(--accent-highlight);
+}
+
+.logoutButton {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    background: rgb(120, 36, 50);
+    border: 1px solid rgb(220, 95, 115);
+    color: var(--cta-text);
+    border-radius: var(--spacing-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-family-secondary);
+}
+
+.logoutButton:hover {
+    background: rgb(220, 95, 115);
+    color: var(--background-primary);
+    box-shadow: 0 0 10px rgb(220, 95, 115);
+}

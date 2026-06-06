@@ -57,3 +57,83 @@ body {
   border-radius: 12px;
   box-shadow: 0 0 5px var(--celestial-glow), inset 0 0 10px var(--glassmorphism-shadow);
 }
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--background-surface);
+  border: var(--border-glow);
+  border-radius: 12px;
+  padding: var(--spacing-lg);
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 0 20px var(--celestial-glow);
+  animation: slideIn 0.3s ease-out;
+}
+
+.modal-content h3 {
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--text-celestial);
+  font-family: var(--font-family-secondary);
+  font-size: 1.5rem;
+}
+
+.modal-content p {
+  margin: 0 0 var(--spacing-lg) 0;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.modal-content button {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  background: var(--accent-dark);
+  border: 1px solid var(--accent-highlight);
+  color: var(--cta-text);
+  border-radius: var(--spacing-sm);
+  cursor: pointer;
+  font-family: var(--font-family-primary);
+  transition: all 0.2s ease;
+}
+
+.modal-content button:hover {
+  background: var(--accent-highlight);
+  color: var(--background-primary);
+  box-shadow: 0 0 10px var(--accent-highlight);
+}
+
+.modal-content button:last-child {
+  background: transparent;
+  border-color: var(--text-muted);
+  color: var(--text-muted);
+}
+
+.modal-content button:last-child:hover {
+  background: var(--background-surface-hover);
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

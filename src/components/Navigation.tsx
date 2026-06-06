@@ -1,3 +1,4 @@
+import { useAuth } from '../context/auth';
 import GlassContainer from './GlassContainer';
 import constellateIcon from '../assets/constellate-icon.png';
 import styles from './Navigation.module.css';
@@ -7,6 +8,8 @@ interface NavigationProps {
 }
 
 export default function Navigation({ currentPage = 'Asterism' }: NavigationProps) {
+    const { session, toggleLoginModal, toggleLogoutModal } = useAuth();
+
     return (
         <GlassContainer className={styles.container}>
             <div className={styles.logoArea}>
@@ -35,9 +38,44 @@ export default function Navigation({ currentPage = 'Asterism' }: NavigationProps
                 </span>
             </nav>
 
-            <div className={styles.actionArea}
-            tabIndex={0}>
-                Sign in
+            <div 
+                className={styles.actionArea} 
+                tabIndex={!session ? 0 : -1}
+                role={!session ? 'button' : undefined}
+                onClick={!session ? toggleLoginModal : undefined}
+                onKeyDown={(e) => {
+                    if (!session && (e.key === 'Enter' || e.key === ' ')) {
+                        toggleLoginModal();
+                    }
+                }}
+            >
+                {session ? (
+                    <div
+                        className={styles.userProfile}
+                        role="button"
+                        tabIndex={0}
+                        onClick={toggleLogoutModal}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                toggleLogoutModal();
+                            }
+                        }}
+                        aria-label="Open logout modal"
+                    >
+                        <span className={styles.userName}>
+                            {session.user.user_metadata.full_name?.split(' ')[0] || 'User'}
+                        </span>
+                        {session.user.user_metadata.avatar_url && (
+                            <img 
+                                src={session.user.user_metadata.avatar_url} 
+                                alt="Profile" 
+                                className={styles.userAvatar} 
+                            />
+                        )}
+                    </div>
+                ) : (
+                    <span>Sign in</span>
+                )}
             </div>
         </GlassContainer>
     );

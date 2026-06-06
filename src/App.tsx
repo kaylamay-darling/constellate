@@ -2,12 +2,18 @@ import Navigation from './components/Navigation';
 import Sidebar, { type ModalID } from './components/Sidebar';
 import ModalContainer from './components/ModalContainer';
 import ToolWrapper from './components/ToolWrapper';
+import WelcomeSection from './components/WelcomeSection';
 
 import Journal from './components/Journal';
 
 import styles from './App.module.css';
 
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
+
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/auth';
+import { LoginModal } from './components/LoginModal';
+import { LogoutModal } from './components/LogoutModal';
 
 const TOOL_LABELS: Record<ModalID, string> = {
   'journal': 'Journal',
@@ -34,6 +40,33 @@ const RescueAid = () => (
   </div>
 );
 
+interface AuthenticatedSidebarProps {
+  activeView: ModalID | null;
+  onAction: (modalId: ModalID) => void;
+  onLogout: () => void;
+}
+
+function AuthenticatedSidebar({ activeView, onAction, onLogout }: AuthenticatedSidebarProps) {
+  const { session } = useAuth();
+
+  useEffect(() => {
+    if (!session) {
+      onLogout();
+    }
+  }, [session, onLogout]);
+
+  if (!session) {
+    return null;
+  }
+
+  return (
+    <Sidebar
+      onAction={onAction}
+      activeView={activeView}
+    />
+  );
+}
+
 function App() {
   const [activeView, setActiveView] = useState<ModalID | null>(null);
 
@@ -54,30 +87,39 @@ function App() {
   const toolLabel = activeView ? TOOL_LABELS[activeView] : '';
 
   return (
-    <div className={styles.appContainer}>
-      <header className={styles.header}>
-        <Navigation />
-      </header>
+    <AuthProvider>
+      <div className={styles.appContainer}>
+        <header className={styles.header}>
+          <Navigation />
+        </header>
 
-      <aside className={styles.mainLayout}>
-        <Sidebar
-          onAction={handleAction}
-          activeView={activeView}
-        />
-      </aside>
-
-      {activeView && (
-        <ModalContainer onClose={() => setActiveView(null)}>
-          <ToolWrapper
-            label={toolLabel}
-            onClose={() => setActiveView(null)}
-          >
-            {renderTool()}
-          </ToolWrapper>
-        </ModalContainer>
-      )}
-    </div>
-  );
+        <div className={styles.mainLayout}>
+          <aside>
+            <AuthenticatedSidebar
+              activeView={activeView}
+              onAction={handleAction}
+              onLogout={() => setActiveView(null)}
+            />
+          </aside>
+          <main>
+            <WelcomeSection />
+            {activeView && (
+              <ModalContainer onClose={() => setActiveView(null)}>
+                <ToolWrapper
+                  label={toolLabel}
+                  onClose={() => setActiveView(null)}
+                >
+                  {renderTool()}
+                </ToolWrapper>
+              </ModalContainer>
+            )}
+          </main>
+        </div>
+        <LoginModal />
+        <LogoutModal />
+      </div>
+      </AuthProvider>
+      );
 }
 
-export default App;
+      export default App;

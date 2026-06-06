@@ -1,9 +1,9 @@
 .container {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: stretch;
+    display: flex;
+    align-items: center;
     padding: 0 var(--spacing-lg);
     height: 64px;
+    box-sizing: border-box;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -13,6 +13,37 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+    flex: 0 0 auto;
+}
+
+.navLinks {
+    display: flex;
+    align-items: stretch;
+    flex: 1;
+    justify-content: center;
+    gap: var(--spacing-lg);
+    color: var(--text-primary);
+    height: 100%;
+}
+
+.actionArea {
+    flex: 0 0 auto;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 0 var(--spacing-md);
+    transition: color 0.3s ease;
+    outline: none;
+    background: transparent;
+    border: none;
+    font-family: var(--font-family-primary);
+    color: var(--text-primary);
+    height: 100%;
+}
+
+.actionArea:hover {
+    color: var(--text-primary-hover);
+    background: var(--background-surface-hover);
 }
 
 .logoText {
@@ -26,81 +57,65 @@
     filter: var(--filter-celestial);
 }
 
-.navLinks {
-    display: flex;
-    align-items: stretch;
-    gap: var(--spacing-lg);
-    color: var(--text-primary);
-}
-
 .navLink {
+    position: relative;
     cursor: pointer;
     display: flex;
     align-items: center;
+    justify-content: center;
     padding: 0 var(--spacing-md);
-    transition: color 0.3s ease, background 0.3s ease;
+    transition: color 0.3s ease;
     outline: none;
-    height: 100%;
-    position: relative;
+    align-self: stretch;
+    min-height: 64px;
 }
 
-.navLink:hover,
-.navLink:focus-visible {
-    color: var(--text-primary-hover);
+.navLink:hover {
     background: var(--background-surface-hover);
-}
-
-.navLink:focus-visible {
-    box-shadow: inset 0 0 0 2px var(--accent-highlight);
+    color: var(--text-primary-hover);
 }
 
 .navLinkActive {
+    background-color: var(--glassmorphism-background);
     color: var(--text-primary-hover);
-    background: var(--glassmorphism-background);
-    border-bottom: 2px solid var(--accent-highlight);
 }
 
-.actionArea {
-    justify-self: end;
+.navLinkActive::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--accent-highlight);
+}
+
+.userProfile {
     display: flex;
     align-items: center;
-    padding: 0 var(--spacing-md);
-    color: var(--cta-text);
-    font-weight: 600;
+    gap: var(--spacing-md);
     cursor: pointer;
-    transition: color 0.3s ease, background 0.3s ease;
-    border-radius: var(--spacing-sm);
-    outline: none;
 }
 
-.actionArea:hover {
-    color: var(--cta-text-hover);
-    background: var(--background-surface-hover);
+.userAvatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--glassmorphism-shadow);
 }
 
-.actionArea:focus-visible {
-    box-shadow: inset 0 0 0 2px var(--accent-highlight);
+.userName {
+    color: var(--text-primary);
+    font-weight: 500;
 }
 
 @media (max-width: 768px) {
-    .navLinks {
-        gap: var(--spacing-md);
-    }
-}
-
-@media (max-width: 600px) {
-    .container {
-        grid-template-columns: auto 1fr auto;
-        padding: 0 var(--spacing-md);
-    }
-    .logoText {
+    .logoArea span, .userName {
         display: none;
     }
-    .navLinks {
-        gap: var(--spacing-sm);
-        justify-content: center;
-    }
-    .navLink {
-        padding: 0 var(--spacing-sm);
+
+    .logoArea {
+        padding-right: var(--spacing-md);
     }
 }
