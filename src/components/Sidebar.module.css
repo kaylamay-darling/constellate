@@ -1,36 +1,72 @@
-.glassCard {
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--spacing-sm);
-    transition: all 0.3s ease;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-md);
-}
-
-.glassCard:hover {
-    background: rgba(255, 255, 255, 0.07);
-    transform: translateX(2px);
-}
-
-.sidebarContainer {
-    width: 250px;
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
-}
-
-.sidebarTitle {
-    font-weight: 600;
-    color: var(--text-celestial);
+.container {
+    height: 100%;
+    width: 300px;
+    position: sticky;
+    z-index: 100;
 }
 
 .sidebar {
     display: flex;
     flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.sidebarHeader {
+    padding: var(--spacing-lg);
+    font-weight: 600;
+    color: var(--text-celestial);
+}
+
+.sidebarItem {
+    width: 100%;
+    display: flex;
+    align-items: center;
     gap: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-md);
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+.sidebarItem.active {
+    background-color: var(--glassmorphism-background);
+    border-left: 2px solid var(--accent-highlight);
+}
+
+.sidebarIcon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    filter: var(--filter-celestial);
+}
+
+.sidebarItem:hover {
+    background: var(--background-surface-hover);
+    color: var(--text-primary-hover);
+}
+
+@media (max-width: 768px) {
+    .container {
+        width: 70px;
+    }
+
+    .sidebar {
+        padding-top: var(--spacing-sm);
+        align-items: center;
+    }
+
+    .sidebarHeader {
+        display: none;
+    }
+
+    .sidebarItem {
+        justify-content: center;
+    }
+
+    .sidebarItem span:not(.sidebarIcon) {
+        display: none;
+    }
 }

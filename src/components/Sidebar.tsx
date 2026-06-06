@@ -1,45 +1,61 @@
 import GlassContainer from './GlassContainer';
 import styles from './Sidebar.module.css';
 
-type NavAction =
-    | { type: 'MODAL'; modalId: 'journal' | 'sobriety-manage' | 'sobriety-track' | 'rescue-aid' }
-    | { type: 'LINK'; path: string };
+import JournalIcon from '../assets/journal-icon.png';
+import AddictionIcon from '../assets/addiction-icon.png';
+import TrackingIcon from '../assets/tracking-icon.png';
+import RescueIcon from '../assets/rescue-icon.png';
+
+export type ModalID = 'journal' | 'sobriety-manage' | 'sobriety-track' | 'rescue-aid';
 
 interface SidebarItem {
     id: string;
     label: string;
-    action: NavAction;
+    modalId: ModalID;
 }
 
+const ICON_MAP: Record<string, string> = {
+    'journal': JournalIcon,
+    'manage-sobriety': AddictionIcon,
+    'track-sobriety': TrackingIcon,
+    'rescue-aid': RescueIcon
+};
+
 const sidebarItems: SidebarItem[] = [
-    { id: 'journal', label: 'Journal Entry', action: { type: 'MODAL', modalId: 'journal' } },
-    { id: 'manage-sobriety', label: 'Manage Sobriety', action: { type: 'MODAL', modalId: 'sobriety-manage' } },
-    { id: 'track-sobriety', label: 'Sobriety Tracking', action: { type: 'MODAL', modalId: 'sobriety-track' } },
-    { id: 'rescue-aid', label: 'Rescue Aid', action: { type: 'MODAL', modalId: 'rescue-aid' } }
+    { id: 'journal', label: 'Journal Entry', modalId: 'journal' },
+    { id: 'manage-sobriety', label: 'Manage Addictions', modalId: 'sobriety-manage' },
+    { id: 'track-sobriety', label: 'Sobriety Tracking', modalId: 'sobriety-track' },
+    { id: 'rescue-aid', label: 'Rescue Aid', modalId: 'rescue-aid' }
 ];
 
 interface SidebarProps {
-    onAction: (action: NavAction) => void;
+    onAction: (modalId: ModalID) => void;
+    activeView: ModalID | null;
 }
 
-export default function Sidebar({ onAction }: SidebarProps) {
+export default function Sidebar({ onAction, activeView }: SidebarProps) {
     return (
-        <nav className={styles.sidebar}>
-            <GlassContainer className={styles.sidebarContainer}>
-                <span className={styles.sidebarTitle}>Dashboard</span>
+        <GlassContainer className={styles.container}>
+            <div className={styles.sidebar}>
+                <div className={styles.sidebarHeader}>Dashboard</div>
 
                 {sidebarItems.map((item) => (
                     <button
                         key={item.id}
-                        className={styles.glassCard}
-                        onClick={() => onAction(item.action)}
+                        className={`${styles.sidebarItem} ${activeView === item.modalId ? styles.active : ''}`}
+                        onClick={() => onAction(item.modalId)}
                         type="button"
                     >
-                        <span className={styles.icon}>✧</span>
+                        <img
+                            src={ICON_MAP[item.id]}
+                            alt=""
+                            className={styles.sidebarIcon}
+                            aria-hidden="true"
+                        />
                         <span>{item.label}</span>
                     </button>
                 ))}
-            </GlassContainer>
-        </nav>
+            </div>
+        </GlassContainer>
     );
 }

@@ -20,8 +20,8 @@
 }
 
 .icon {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
     object-fit: contain;
     filter: var(--filter-celestial);
 }
@@ -47,7 +47,7 @@
 .navLink:hover,
 .navLink:focus-visible {
     color: var(--text-primary-hover);
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--background-surface-hover);
 }
 
 .navLink:focus-visible {
@@ -56,7 +56,7 @@
 
 .navLinkActive {
     color: var(--text-primary-hover);
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--glassmorphism-background);
     border-bottom: 2px solid var(--accent-highlight);
 }
 
@@ -75,7 +75,7 @@
 
 .actionArea:hover {
     color: var(--cta-text-hover);
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--background-surface-hover);
 }
 
 .actionArea:focus-visible {
