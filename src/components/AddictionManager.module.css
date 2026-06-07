@@ -99,6 +99,16 @@
     flex-shrink: 0;
 }
 
+.radialComplete {
+    filter: drop-shadow(0 0 6px var(--cta-text));
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { filter: drop-shadow(0 0 4px var(--cta-text)); }
+    50% { filter: drop-shadow(0 0 10px var(--cta-text)); }
+}
+
 .progressValue {
     color: var(--cta-text);
     font-size: var(--font-size-sm);

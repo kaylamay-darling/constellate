@@ -58,16 +58,25 @@ export function AddictionManager() {
                         const referenceDate = getLatestReferenceDate(a);
                         const daysSince = getDaysSince(referenceDate);
                         const soberDuration = getSoberDuration(referenceDate);
-                        const progress = Math.min(100, Math.round((Math.min(daysSince, 30) / 30) * 100));
+                        const streaks = Math.floor(daysSince / 30);
+                        const cycleDay = daysSince % 30;
+                        const isCompleted = streaks > 0;
+                        const progress = Math.round((cycleDay / 30) * 100);
 
                         return (
                             <div key={a.name} className={styles.listItem}>
                                 <div className={styles.listItemRow}>
                                     <div className={styles.addictionHeader}>
-                                        <div className={styles.radialProgress} style={{
-                                            background: `radial-gradient(closest-side, var(--background-surface) 78%, transparent 80% 100%), conic-gradient(var(--cta-text) ${progress}%, var(--glassmorphism-shadow) 0)`
-                                        }}>
-                                            <span className={styles.progressValue}>{`${Math.min(daysSince, 30)} / 30`}</span>
+                                        <div
+                                            className={`${styles.radialProgress} ${isCompleted ? styles.radialComplete : ''}`}
+                                            style={{
+                                                background: `radial-gradient(closest-side, var(--background-surface) 78%, transparent 80% 100%), conic-gradient(var(--cta-text) ${progress}%, var(--glassmorphism-shadow) 0)`
+                                            }}
+                                        >
+                                            {isCompleted
+                                                ? <span className={styles.progressValue}>🔥 {streaks}</span>
+                                                : <span className={styles.progressValue}>{`${cycleDay} / 30`}</span>
+                                            }
                                         </div>
                                         <div className={styles.addictionTextStack}>
                                             <span className={styles.addictionTitle}>{a.name}</span>
