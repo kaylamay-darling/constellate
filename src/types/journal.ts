@@ -7,7 +7,7 @@ export interface DailyPulse {
 
 export interface Addiction {
     name: string;
-    urges: number | null;
+    urges: string[];
     relapses: string[];
     startDate: string;
 }

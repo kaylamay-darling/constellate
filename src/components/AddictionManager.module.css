@@ -5,7 +5,6 @@
     padding: var(--spacing-sm);
     box-sizing: border-box;
     min-width: 0;
-
     overflow: visible;
 }
 
@@ -17,13 +16,193 @@
     gap: var(--spacing-md);
     border: 1px solid var(--glassmorphism-shadow);
     border-radius: var(--spacing-sm);
-
-    overflow: visible;
 }
 
 .sectionHeader {
     font-family: var(--font-family-primary);
     color: var(--text-primary);
+}
+
+.listItem {
+    background: var(--glassmorphism-shadow);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    text-align: left;
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    border-radius: var(--spacing-sm);
+}
+
+.listItemRow {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: var(--spacing-md);
+}
+
+.customInputRow {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background: var(--glassmorphism-shadow);
+    border-radius: var(--spacing-sm);
+}
+
+.customInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: var(--font-family-secondary);
+    font-size: var(--font-size-sm);
+    outline: none;
+}
+
+.customInput::placeholder {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.customAddBtn {
+    background: transparent;
+    border: 1px solid var(--cta-text);
+    color: var(--cta-text);
+    border-radius: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.customAddBtn:hover {
+    background: var(--cta-text);
+    color: var(--background-surface);
+}
+
+.addictionHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex: 1;
+}
+
+.radialProgress {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.progressValue {
+    color: var(--cta-text);
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+}
+
+.addictionTextStack {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.addictionTitle {
+    color: var(--text-primary);
+    font-size: var(--font-size-md);
+}
+
+.soberFor {
+    color: var(--text-intermediate);
+    font-size: var(--font-size-sm);
+}
+
+.trashIcon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    filter: brightness(0) saturate(100%) invert(27%) sepia(90%) saturate(7500%) hue-rotate(346deg) brightness(104%);
+}
+
+.dateContainer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--glassmorphism-shadow);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    width: 100%;
+    box-sizing: border-box;
+    gap: var(--spacing-sm);
+}
+
+.dateLabel {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.dateInput {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: var(--font-family-secondary);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    flex-grow: 1;
+    text-align: right;
+}
+
+.dateInput::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: var(--filter-celestial);
+    opacity: 0.6;
+    margin-left: 100px;
+}
+
+
+.actionRow {
+    display: flex;
+    gap: var(--spacing-sm);
+    width: 100%;
+}
+
+.logUrgeBtn,
+.logRelapseBtn {
+    flex: 1;
+    padding: var(--spacing-sm);
+    border-radius: var(--spacing-sm);
+    font-size: 10px;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid var(--glassmorphism-shadow);
+    transition: 0.2s;
+}
+
+.logUrgeBtn {
+    border-color: var(--cta-text);
+    color: var(--cta-text);
+    transition: 0.2s;
+}
+
+.logUrgeBtn:hover {
+    background: var(--cta-text);
+    color: var(--background-surface);
+}
+
+.logRelapseBtn {
+    border-color: #ff4444;
+    color: #ff4444;
+    transition: 0.2s;
+}
+
+.logRelapseBtn:hover {
+    background: rgba(255, 68, 68, 0.2);
 }
 
 .addButton {
@@ -33,14 +212,6 @@
     color: var(--cta-text);
     border-radius: var(--spacing-sm);
     cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: var(--font-family-secondary);
-    text-align: left;
-}
-
-.addButton:not(.open):hover {
-    background: var(--background-surface);
-    border-color: var(--cta-text);
 }
 
 .buttonHeader {
@@ -54,11 +225,6 @@
     font-size: 12px;
     opacity: 0.6;
     cursor: pointer;
-    padding: 4px;
-}
-
-.closeX:hover {
-    opacity: 1;
 }
 
 .list {
@@ -67,17 +233,74 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);
-    cursor: default;
 }
 
-.listItem {
-    background: var(--glassmorphism-shadow);
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.confirmationModal {
+    background: var(--background-surface);
+    border: 1px solid var(--glassmorphism-shadow);
+    border-radius: var(--spacing-sm);
+    max-width: 400px;
+    padding: 0 var(--spacing-md) var(--spacing-md) var(--spacing-md);
+}
+
+.confirmationModal h3 {
+    font-size: var(--font-size-md);
+    font-family: var(--font-family-secondary);
+    color: var(--text-primary);
+}
+
+.confirmationModal p {
     font-size: var(--font-size-sm);
-    cursor: pointer;
-    text-align: left;
-    padding: var(--spacing-md);
+    font-family: var(--font-family-secondary);
+    color: var(--text-intermediate);
+    padding-bottom: var(--spacing-sm);
 }
 
-.listItem:hover {
-    background: rgba(266, 266, 266, 0.03);
+.modalButtons {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: flex-end;
+}
+
+.cancelButton,
+.confirmButton {
+    padding: var(--spacing-sm) var(--spacing-md);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.cancelButton {
+    background: var(--cta-text-hover);
+    color: var(--cta-text);
+    border: 1px solid var(--cta-text);
+    transition: 0.2s;
+}
+
+.cancelButton:hover {
+    background: var(--cta-text);
+    color: var(--background-surface);
+}
+
+.confirmButton {
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff4444;
+    border: 1px solid #ff4444;
+    transition: 0.2s;
+}
+
+.confirmButton:hover {
+    background: rgba(255, 0, 0, 0.4);
 }
