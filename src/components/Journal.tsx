@@ -3,9 +3,14 @@ import { saveJournalEntry } from '../lib/journalService';
 import styles from './Journal.module.css';
 import { PulseSlider } from './PulseSlider';
 import { useAddiction } from '../context/AddictionContext';
-import {ToggleSwitch} from './ToggleSwitch';
+import { ToggleSwitch } from './ToggleSwitch';
 
-export default function Journal() {
+interface JournalProps {
+    onClose: () => void;
+}
+
+
+export default function Journal({ onClose }: JournalProps) {
     const [mood, setMood] = useState<number | null>(null);
     const [energy, setEnergy] = useState<number | null>(null);
     const [affect, setAffect] = useState<number | null>(null);
@@ -13,7 +18,9 @@ export default function Journal() {
     const [journalText, setJournalText] = useState("");
     const [journalEvents, setJournalEvents] = useState<Record<string, { urge: boolean; relapse: boolean }>>({});
 
-    const { addictions } = useAddiction();
+    const { addictions, logEvent } = useAddiction();
+
+    const isValid = mood !== null && energy !== null && affect !== null && anxiety !== null && journalText.trim() !== '';
 
     const toggleEvent = (name: string, type: 'urge' | 'relapse') => {
         setJournalEvents(prev => ({
@@ -26,19 +33,33 @@ export default function Journal() {
     };
 
     const handleSave = async () => {
-        try {
-            const entryData = {
-                daily_pulse: { mood, energy, affect, anxiety },
-                content: journalText,
-                addictions: journalEvents,
-            };
+    if (
+        mood === null ||
+        energy === null ||
+        affect === null ||
+        anxiety === null ||
+        journalText.trim() === ''
+    ) return;
 
-            await saveJournalEntry(entryData);
-            alert("Entry saved successfully!");
-        } catch (error) {
-            console.error("Error saving entry:", error);
+    try {
+        const entryData = {
+            daily_pulse: { mood, energy, affect, anxiety },
+            content: journalText,
+            addictions: journalEvents,
+        };
+
+        await saveJournalEntry(entryData);
+
+        for (const [name, events] of Object.entries(journalEvents)) {
+            if (events.urge) await logEvent(name, 'urge');
+            if (events.relapse) await logEvent(name, 'relapse');
         }
-    };
+
+        onClose();
+    } catch (error) {
+        console.error("Error saving entry:", error);
+    }
+};
 
     return (
         <div className={styles.journalContainer}>
@@ -105,26 +126,26 @@ export default function Journal() {
                 <span className={styles.sectionHeader}>Addictions</span>
                 {addictions.map(a => (
                     <div key={a.name} className={styles.addictionRow}>
-    <span className={styles.addictionName}>{a.name}</span>
-    <div className={styles.toggleGroup}>
-        <ToggleSwitch
-            label="Urge"
-            checked={journalEvents[a.name]?.urge ?? false}
-            onChange={() => toggleEvent(a.name, 'urge')}
-            variant="urge"
-        />
-        <ToggleSwitch
-            label="Relapse"
-            checked={journalEvents[a.name]?.relapse ?? false}
-            onChange={() => toggleEvent(a.name, 'relapse')}
-            variant="relapse"
-        />
-    </div>
-</div>
+                        <span className={styles.addictionName}>{a.name}</span>
+                        <div className={styles.toggleGroup}>
+                            <ToggleSwitch
+                                label="Urge"
+                                checked={journalEvents[a.name]?.urge ?? false}
+                                onChange={() => toggleEvent(a.name, 'urge')}
+                                variant="urge"
+                            />
+                            <ToggleSwitch
+                                label="Relapse"
+                                checked={journalEvents[a.name]?.relapse ?? false}
+                                onChange={() => toggleEvent(a.name, 'relapse')}
+                                variant="relapse"
+                            />
+                        </div>
+                    </div>
                 ))}
             </section>
 
-            <button className={styles.saveButton} onClick={handleSave}>Archive Entry</button>
+            <button className={styles.saveButton} onClick={handleSave} disabled={!isValid}>Archive Entry</button>
         </div>
     );
 }

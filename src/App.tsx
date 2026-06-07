@@ -73,7 +73,7 @@ function App() {
 
   const renderTool = (): ReactNode => {
     switch (activeView) {
-      case 'journal': return <Journal />;
+      case 'journal': return <Journal onClose={() => setActiveView(null)} />;
       case 'sobriety-manage': return <AddictionManager />;
       case 'sobriety-track': return <SobrietyTracking />;
       case 'rescue-aid': return <RescueAid />;
