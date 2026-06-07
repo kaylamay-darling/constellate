@@ -19,15 +19,21 @@ function getDaysSince(dateString: string) {
 
 function getSoberDuration(dateString: string) {
     const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) return '0 minutes';
+    if (Number.isNaN(date.getTime())) return '0 days';
     const diffMs = Math.max(0, Date.now() - date.getTime());
-    const minutes = Math.floor(diffMs / (1000 * 60));
-    if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'}`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'}`;
-    const days = Math.floor(hours / 24);
-    if (days < 30) return `${days} day${days === 1 ? '' : 's'}`;
-    return `${Math.floor(days / 30)} month${Math.floor(days / 30) === 1 ? '' : 's'}`;
+
+    const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const years = Math.floor(totalDays / 365);
+    const months = Math.floor((totalDays % 365) / 30);
+    const days = totalDays % 30;
+
+    const parts: string[] = [];
+    if (years > 0) parts.push(`${years} year${years === 1 ? '' : 's'}`);
+    if (months > 0) parts.push(`${months} month${months === 1 ? '' : 's'}`);
+    if (totalDays > 0) parts.push(`${days} day${days === 1 ? '' : 's'}`);
+    if (parts.length === 0) parts.push('0 days');
+
+    return parts.join(', ');
 }
 
 export function AddictionManager() {
@@ -58,10 +64,10 @@ export function AddictionManager() {
                         const referenceDate = getLatestReferenceDate(a);
                         const daysSince = getDaysSince(referenceDate);
                         const soberDuration = getSoberDuration(referenceDate);
-                        const streaks = Math.floor(daysSince / 30);
-                        const cycleDay = daysSince % 30;
+                        const streaks = Math.floor(daysSince / 14);
+                        const cycleDay = daysSince % 14;
                         const isCompleted = streaks > 0;
-                        const progress = Math.round((cycleDay / 30) * 100);
+                        const progress = Math.round((cycleDay / 14) * 100);
 
                         return (
                             <div key={a.name} className={styles.listItem}>

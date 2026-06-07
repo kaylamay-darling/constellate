@@ -39,7 +39,7 @@
     gap: 12px;
 }
 
-.subSectionHeader {
+.subSectionHeader, .addictionName {
     font-family: var(--font-family-primary);
     font-size: var(--font-size-sm);
     color: var(--text-intermediate);
@@ -134,4 +134,26 @@
 .saveButton:hover {
     background: var(--background-surface);
     border-color: var(--cta-text);
+}
+
+.addictionRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0;
+}
+
+.toggleGroup {
+    display: flex;
+    gap: var(--spacing-lg);
+}
+
+.toggleUrgeActive {
+    border-color: var(--cta-text);
+    color: var(--cta-text);
+}
+
+.toggleRelapseActive {
+    border-color: #ff4444;
+    color: #ff4444;
 }

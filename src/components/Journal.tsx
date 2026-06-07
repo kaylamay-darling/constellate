@@ -1,24 +1,9 @@
 import { useState } from 'react';
 import { saveJournalEntry } from '../lib/journalService';
-import type { Addiction } from '../types/journal';
 import styles from './Journal.module.css';
-
 import { PulseSlider } from './PulseSlider';
-
-const handleSave = async () => {
-    try {
-        const entryData = {
-            daily_pulse: { mood, energy, affect, anxiety },
-            content: journalText,
-            addictions: currentAddictions,
-        };
-
-        await saveJournalEntry(entryData);
-        alert("Entry saved successfully!");
-    } catch (error) {
-        console.error("Error saving entry:", error);
-    }
-};
+import { useAddiction } from '../context/AddictionContext';
+import {ToggleSwitch} from './ToggleSwitch';
 
 export default function Journal() {
     const [mood, setMood] = useState<number | null>(null);
@@ -26,14 +11,26 @@ export default function Journal() {
     const [affect, setAffect] = useState<number | null>(null);
     const [anxiety, setAnxiety] = useState<number | null>(null);
     const [journalText, setJournalText] = useState("");
-    const [currentAddictions, setCurrentAddictions] = useState<Addiction[]>([]);
+    const [journalEvents, setJournalEvents] = useState<Record<string, { urge: boolean; relapse: boolean }>>({});
+
+    const { addictions } = useAddiction();
+
+    const toggleEvent = (name: string, type: 'urge' | 'relapse') => {
+        setJournalEvents(prev => ({
+            ...prev,
+            [name]: {
+                ...prev[name],
+                [type]: !prev[name]?.[type],
+            }
+        }));
+    };
 
     const handleSave = async () => {
         try {
             const entryData = {
                 daily_pulse: { mood, energy, affect, anxiety },
                 content: journalText,
-                addictions: currentAddictions,
+                addictions: journalEvents,
             };
 
             await saveJournalEntry(entryData);
@@ -50,7 +47,7 @@ export default function Journal() {
 
                 <div className={styles.subSectionInline}>
                     <span className={styles.subSectionHeader}
-                    title="How are you feeling right now?">Mood</span>
+                        title="How are you feeling right now?">Mood</span>
                     <div className={styles.moodPicker}>
                         <div className={`${styles.moodItem} ${mood === 1 ? styles.active : ''}`} onClick={() => setMood(1)}>😢</div>
                         <div className={`${styles.moodItem} ${mood === 2 ? styles.active : ''}`} onClick={() => setMood(2)}>🙁</div>
@@ -63,7 +60,7 @@ export default function Journal() {
                 <div className={styles.subSection}>
                     <div className={styles.sliderRow}>
                         <span className={styles.subSectionHeader}
-                        title="How overwhelming do your emotions feel?">Emotional Intensity</span>
+                            title="How overwhelming do your emotions feel?">Emotional Intensity</span>
                         <div className={styles.sliderControlContainer}>
                             <PulseSlider value={affect} onChange={setAffect} gradient="#ADD8E6, #8B0000" />
                             <span className={styles.valueDisplay}>{affect ? Math.round(affect) : "--"}</span>
@@ -85,7 +82,7 @@ export default function Journal() {
                 <div className={styles.subSection}>
                     <div className={styles.sliderRow}>
                         <span className={styles.subSectionHeader}
-                        title="How loud are your thoughts, or how oppressing is your panic?">Anxiety</span>
+                            title="How loud are your thoughts, or how oppressing is your panic?">Anxiety</span>
                         <div className={styles.sliderControlContainer}>
                             <PulseSlider value={anxiety} onChange={setAnxiety} gradient="#5baf58, #ab763e" />
                             <span className={styles.valueDisplay}>{anxiety ? Math.round(anxiety) : "--"}</span>
@@ -106,6 +103,25 @@ export default function Journal() {
 
             <section className={styles.section}>
                 <span className={styles.sectionHeader}>Addictions</span>
+                {addictions.map(a => (
+                    <div key={a.name} className={styles.addictionRow}>
+    <span className={styles.addictionName}>{a.name}</span>
+    <div className={styles.toggleGroup}>
+        <ToggleSwitch
+            label="Urge"
+            checked={journalEvents[a.name]?.urge ?? false}
+            onChange={() => toggleEvent(a.name, 'urge')}
+            variant="urge"
+        />
+        <ToggleSwitch
+            label="Relapse"
+            checked={journalEvents[a.name]?.relapse ?? false}
+            onChange={() => toggleEvent(a.name, 'relapse')}
+            variant="relapse"
+        />
+    </div>
+</div>
+                ))}
             </section>
 
             <button className={styles.saveButton} onClick={handleSave}>Archive Entry</button>
