@@ -8,16 +8,14 @@ export interface StarData {
     created_at: string;
     entry: JournalEntry;
 
-    // Raw computed position (origin = 0,0, centroid not yet applied)
     x: number;
     y: number;
 
-    // Visuals
-    size: number;        // mood 1-5, maps to px size in component
-    brightness: number;  // energy 0-1, maps to opacity/glow
-    color: number;       // affect 0-1, maps to blue→red interpolation
-    twinkle: number;     // anxiety 0-1, maps to animation duration
-    wellness: number;    // raw wellness score
+    size: number;
+    brightness: number;
+    color: number;
+    twinkle: number;
+    wellness: number;
 
     constellationId: number;
 }
@@ -25,7 +23,7 @@ export interface StarData {
 export interface EdgeData {
     fromId: string;
     toId: string;
-    opacity: number;     // delta magnitude 0-1
+    opacity: number;
 }
 
 export interface ConstellationData {
@@ -36,10 +34,8 @@ export interface ConstellationData {
     centroid: { x: number; y: number };
 }
 
-// --- Constants ---
-
-const MIN_STEP            = 60;
-const MAX_STEP            = 180;
+const MIN_STEP            = 80;
+const MAX_STEP            = 200;
 const MAX_EDGE_DISTANCE   = MAX_STEP * 2.5;
 const MAX_NEIGHBORS       = 3;
 const BACKTRACK_THRESHOLD = 135;

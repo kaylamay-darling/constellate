@@ -1,10 +1,13 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { fetchStarMap, type ConstellationData, type StarData, type EdgeData } from '../lib/starMapService';
 import styles from './StarMap.module.css';
 
 const GRAVEYARD_RADIUS = 900;
 const STAR_BASE_SIZE = 6;
 const STAR_SIZE_SCALE = 4;
+const MIN_ZOOM = 0.3;
+const MAX_ZOOM = 3;
+const ZOOM_SENSITIVITY = 0.001;
 
 function interpolateColor(t: number): string {
     const r = Math.round(180 + t * 75);
@@ -14,12 +17,12 @@ function interpolateColor(t: number): string {
 }
 
 function twinkleDuration(anxiety: number): number {
-    return 6 - anxiety * 5;
+    return  - anxiety * 4;
 }
 
 function starGlow(brightness: number, color: string): string {
-    const intensity = 4 + brightness * 12;
-    return `0 0 ${intensity}px ${color}, 0 0 ${intensity * 2}px ${color}`;
+    const intensity = 3 + brightness * 7;
+    return `0 0 ${intensity}px ${color}, 0 0 ${intensity * 2.5}px ${color}`;
 }
 
 interface EdgeLineProps {
@@ -35,6 +38,7 @@ function EdgeLine({ from, to, opacity, offsetX, offsetY }: EdgeLineProps) {
     const y1 = from.y + offsetY;
     const x2 = to.x + offsetX;
     const y2 = to.y + offsetY;
+
     const dx = x2 - x1;
     const dy = y2 - y1;
     const length = Math.sqrt(dx * dx + dy * dy);
@@ -47,7 +51,7 @@ function EdgeLine({ from, to, opacity, offsetX, offsetY }: EdgeLineProps) {
                 left: x1,
                 top: y1,
                 width: length,
-                opacity: Math.max(0.08, opacity),
+                opacity: Math.max(0.25, opacity),
                 transform: `rotate(${angle}deg)`,
                 transformOrigin: '0 50%',
             }}
@@ -79,7 +83,7 @@ function StarNode({ star, offsetX, offsetY, onClick, dimmed = false }: StarNodeP
                 height: size,
                 background: color,
                 boxShadow: glow,
-                opacity: dimmed ? 0.3 + star.brightness * 0.25 : 0.6 + star.brightness * 0.4,
+                opacity: dimmed ? 0.15 + star.brightness * 0.15 : 0.3 + star.brightness * 0.5,
                 animationDuration: `${duration}s`,
             }}
             onClick={() => onClick(star)}
@@ -123,14 +127,14 @@ function renderConstellation(
         <div key={constellation.id} className={styles.constellation}>
             {constellation.edges.map((edge: EdgeData) => {
                 const from = starById[edge.fromId];
-                const to = starById[edge.toId];
+                const to   = starById[edge.toId];
                 if (!from || !to) return null;
                 return (
                     <EdgeLine
                         key={`${edge.fromId}-${edge.toId}`}
                         from={from}
                         to={to}
-                        opacity={dimmed ? edge.opacity * 0.3 : edge.opacity}
+                        opacity={dimmed ? edge.opacity * 0.15 : edge.opacity} // dimmer graveyard edges
                         offsetX={offsetX}
                         offsetY={offsetY}
                     />
@@ -154,12 +158,20 @@ export function StarMap() {
     const [constellations, setConstellations] = useState<ConstellationData[]>([]);
     const [selectedStar, setSelectedStar] = useState<StarData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [viewportCenter, setViewportCenter] = useState({ x: 0, y: 0 });
-    const [offset, setOffset] = useState({ x: 0, y: 0 });
-    const [isDragging, setIsDragging] = useState(false);
-    
+    const [zoom, setZoom] = useState(1);
+    const [zoomOrigin, setZoomOrigin] = useState({ x: 0, y: 0 });
+    const [pan, setPan] = useState({ x: 0, y: 0 });
     const containerRef = useRef<HTMLDivElement>(null);
-    const lastMousePos = useRef({ x: 0, y: 0 });
+    const [viewportCenter, setViewportCenter] = useState({ x: 0, y: 0 });
+    const pinchStartDistRef = useRef<number | null>(null);
+    const pinchStartZoomRef = useRef<number>(1);
+    const zoomRef = useRef(zoom);
+    const panRef = useRef(pan);
+    const isDraggingRef = useRef(false);
+    const dragStartRef = useRef({ x: 0, y: 0 });
+
+    useEffect(() => { zoomRef.current = zoom; }, [zoom]);
+    useEffect(() => { panRef.current = pan; }, [pan]);
 
     useEffect(() => {
         const updateCenter = () => {
@@ -182,18 +194,111 @@ export function StarMap() {
             .finally(() => setLoading(false));
     }, []);
 
-    const handleMouseDown = (e: React.MouseEvent) => {
-        setIsDragging(true);
-        lastMousePos.current = { x: e.clientX, y: e.clientY };
-    };
+    // Scroll to zoom
+    useEffect(() => {
+        const handleWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            const rect = containerRef.current?.getBoundingClientRect();
+            if (!rect) return;
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            setZoomOrigin({ x: mouseX, y: mouseY });
+            setZoom(prev => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, prev - e.deltaY * ZOOM_SENSITIVITY)));
+        };
 
-    const handleMouseMove = (e: React.MouseEvent) => {
-        if (!isDragging) return;
-        const dx = e.clientX - lastMousePos.current.x;
-        const dy = e.clientY - lastMousePos.current.y;
-        setOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
-        lastMousePos.current = { x: e.clientX, y: e.clientY };
-    };
+        window.addEventListener('wheel', handleWheel, { passive: false });
+        return () => window.removeEventListener('wheel', handleWheel);
+    }, []);
+
+    // Drag to pan
+    useEffect(() => {
+        const handleMouseDown = (e: MouseEvent) => {
+            isDraggingRef.current = true;
+            dragStartRef.current = { x: e.clientX - panRef.current.x, y: e.clientY - panRef.current.y };
+        };
+
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isDraggingRef.current) return;
+            setPan({
+                x: e.clientX - dragStartRef.current.x,
+                y: e.clientY - dragStartRef.current.y,
+            });
+        };
+
+        const handleMouseUp = () => {
+            isDraggingRef.current = false;
+        };
+
+        window.addEventListener('mousedown', handleMouseDown);
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            window.removeEventListener('mousedown', handleMouseDown);
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, []);
+
+    // Pinch to zoom
+    const handleTouchStart = useCallback((e: TouchEvent) => {
+        if (e.touches.length === 2) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            pinchStartDistRef.current = Math.sqrt(dx * dx + dy * dy);
+            pinchStartZoomRef.current = zoomRef.current;
+            const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            const rect = containerRef.current?.getBoundingClientRect();
+            if (rect) setZoomOrigin({ x: midX - rect.left, y: midY - rect.top });
+        }
+    }, []);
+
+    const handleTouchMove = useCallback((e: TouchEvent) => {
+        if (e.touches.length === 2 && pinchStartDistRef.current !== null) {
+            e.preventDefault();
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const scale = dist / pinchStartDistRef.current;
+            setZoom(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinchStartZoomRef.current * scale)));
+        }
+    }, []);
+
+    const handleTouchEnd = useCallback(() => {
+        pinchStartDistRef.current = null;
+    }, []);
+
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        el.addEventListener('touchstart', handleTouchStart, { passive: false });
+        el.addEventListener('touchmove', handleTouchMove, { passive: false });
+        el.addEventListener('touchend', handleTouchEnd);
+        return () => {
+            el.removeEventListener('touchstart', handleTouchStart);
+            el.removeEventListener('touchmove', handleTouchMove);
+            el.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
+
+    const PADDING_LEFT = 100;
+    const PADDING_TOP = -50;
+
+    useEffect(() => {
+    if (!loading && constellations.length > 0) {
+        const active = constellations.find(c => c.isActive);
+        
+        if (active && containerRef.current) {
+            const centerX = containerRef.current.clientWidth / 2;
+            const centerY = containerRef.current.clientHeight / 2;
+            
+            setPan({
+                x: centerX - active.centroid.x + PADDING_LEFT,
+                y: centerY - active.centroid.y + PADDING_TOP
+            });
+        }
+    }
+}, [loading, constellations]);
 
     if (loading) {
         return (
@@ -205,37 +310,37 @@ export function StarMap() {
         );
     }
 
-    const active = constellations.find(c => c.isActive);
+    const active    = constellations.find(c => c.isActive);
     const graveyard = constellations.filter(c => !c.isActive);
 
-    const activeOffsetX = (active ? viewportCenter.x - active.centroid.x : viewportCenter.x) + offset.x;
-    const activeOffsetY = (active ? viewportCenter.y - active.centroid.y : viewportCenter.y) + offset.y;
+    const activeOffsetX = active ? viewportCenter.x - active.centroid.x : viewportCenter.x;
+    const activeOffsetY = active ? viewportCenter.y - active.centroid.y : viewportCenter.y;
 
     const graveyardPositions = graveyard.map((c, i) => {
-        const angle = (i / graveyard.length) * 360 - 90;
-        const rad = (angle * Math.PI) / 180;
-        const cx = viewportCenter.x + Math.cos(rad) * GRAVEYARD_RADIUS + offset.x;
-        const cy = viewportCenter.y + Math.sin(rad) * GRAVEYARD_RADIUS + offset.y;
-        return { constellation: c, offsetX: cx - c.centroid.x, offsetY: cy - c.centroid.y };
+        const angle = (i / Math.max(graveyard.length, 1)) * 360 - 90;
+        const rad   = (angle * Math.PI) / 180;
+        const cx    = viewportCenter.x + Math.cos(rad) * GRAVEYARD_RADIUS;
+        const cy    = viewportCenter.y + Math.sin(rad) * GRAVEYARD_RADIUS;
+        return {
+            constellation: c,
+            offsetX: cx - c.centroid.x,
+            offsetY: cy - c.centroid.y,
+        };
     });
 
     return (
-        <div 
-            className={styles.container} 
-            ref={containerRef}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={() => setIsDragging(false)}
-            onMouseLeave={() => setIsDragging(false)}
-            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-        >
-            <div className={styles.map}>
+        <div className={styles.container} ref={containerRef}>
+            <div
+                className={styles.map}
+                style={{
+                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                    transformOrigin: `${zoomOrigin.x}px ${zoomOrigin.y}px`,
+                }}
+            >
                 {graveyardPositions.map(({ constellation, offsetX, offsetY }) =>
                     renderConstellation(constellation, offsetX, offsetY, setSelectedStar, true)
                 )}
-
                 {active && renderConstellation(active, activeOffsetX, activeOffsetY, setSelectedStar, false)}
-
                 {!active && !loading && (
                     <div className={styles.emptyState}>
                         <p>Your constellation awaits.<br />Archive your first journal entry to begin.</p>

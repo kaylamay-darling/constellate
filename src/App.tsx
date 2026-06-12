@@ -4,6 +4,8 @@ import ModalContainer from './components/ModalContainer';
 import ToolWrapper from './components/ToolWrapper';
 import WelcomeSection from './components/WelcomeSection';
 
+import { StarMap } from './components/StarMap';
+
 import Journal from './components/Journal';
 import { AddictionManager } from './components/AddictionManager';
 
@@ -86,6 +88,7 @@ function App() {
   return (
     <AuthProvider>
       <div className={styles.appContainer}>
+        <StarMap/>
         <header className={styles.header}>
           <Navigation />
         </header>
