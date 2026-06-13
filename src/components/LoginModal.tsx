@@ -11,7 +11,7 @@ export const LoginModal = () => {
     const handleGoogleLogin = async () => {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: { redirectTo: 'http://localhost:5174/' },
+            options: { redirectTo: window.location.origin },
         });
         if (error) console.error('Login error:', error.message);
     };
