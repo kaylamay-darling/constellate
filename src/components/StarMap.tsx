@@ -137,7 +137,6 @@ function JournalModal({ star, onClose, onDelete }: JournalModalProps) {
                     confirmLabel="Delete"
                     onConfirm={() => onDelete(star.id)}
                     onCancel={() => setShowDeleteConfirm(false)}
-                    zIndex={200}
                 />
             )}
         </>

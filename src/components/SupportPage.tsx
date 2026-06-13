@@ -4,6 +4,7 @@ interface Resource {
     name: string;
     number?: string;
     text?: string;
+    hours?: string;
     url: string;
     description: string;
     category: string;
@@ -78,7 +79,9 @@ export function SupportPage() {
                             >
                                 <div className={styles.cardHeader}>
                                     <span className={styles.resourceName}>{resource.name}</span>
-                                    <span className={styles.hours}>{resource.hours}</span>
+                                    {resource.hours && (
+                                        <span className={styles.hours}>{resource.hours}</span>
+                                    )}
                                 </div>
                                 <p className={styles.description}>{resource.description}</p>
                                 {resource.number && (

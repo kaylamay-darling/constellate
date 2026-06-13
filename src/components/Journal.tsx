@@ -5,9 +5,6 @@ import { PulseSlider } from './PulseSlider';
 import { useAddiction } from '../context/AddictionContext';
 import { ToggleSwitch } from './ToggleSwitch';
 
-import { createPortal } from 'react-dom';
-
-
 interface JournalProps {
     onClose: () => void;
     onEntrySaved?: () => void;

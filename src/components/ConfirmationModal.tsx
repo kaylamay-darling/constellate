@@ -8,12 +8,11 @@ interface ConfirmationModalProps {
     confirmLabel: string;
     onConfirm: () => void;
     onCancel: () => void;
-    zIndex?: number;
 }
 
-export function ConfirmationModal({ title, message, confirmLabel, onConfirm, onCancel, zIndex }: ConfirmationModalProps) {
+export function ConfirmationModal({ title, message, confirmLabel, onConfirm, onCancel }: ConfirmationModalProps) {
     return createPortal(
-    <ModalContainer onClose={onCancel} zIndex={zIndex}>
+    <ModalContainer onClose={onCancel}>
         <div className={styles.card}>
             <h3 className={styles.title}>{title}</h3>
             <p className={styles.message}>{message}</p>

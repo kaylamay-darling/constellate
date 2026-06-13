@@ -54,7 +54,6 @@ export function RescueAid() {
     const [phaseIndex, setPhaseIndex] = useState(0);
     const [progress, setProgress] = useState(0);
     const [glowing, setGlowing] = useState(false);
-    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const frameRef = useRef<ReturnType<typeof requestAnimationFrame> | null>(null);
     const startTimeRef = useRef<number>(0);
 

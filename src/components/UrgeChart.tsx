@@ -123,7 +123,7 @@ export function UrgeChart({ data }: UrgeChartProps) {
                                         fill={addiction.color}
                                         opacity={0.7}
                                         className={styles.dataPoint}
-                                        onMouseEnter={(e) => setTooltip({
+                                        onMouseEnter={() => setTooltip({
                                             x: p.x,
                                             y: p.y,
                                             value: parseFloat(addiction.averageUrgesPerWeekday[i].toFixed(2)),
@@ -141,7 +141,7 @@ export function UrgeChart({ data }: UrgeChartProps) {
                                         r={4}
                                         fill={addiction.color}
                                         className={styles.dataPoint}
-                                        onMouseEnter={(e) => setTooltip({
+                                        onMouseEnter={() => setTooltip({
                                             x: p.x,
                                             y: p.y,
                                             value: addiction.currentWeekUrges[i],
