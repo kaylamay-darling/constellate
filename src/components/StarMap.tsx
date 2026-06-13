@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useLayoutEffect } from 'react';
 import {
     fetchStarMap,
     deleteStar,
@@ -17,6 +17,8 @@ const STAR_SIZE_SCALE = 4;
 const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 3;
 const ZOOM_SENSITIVITY = 0.001;
+const PADDING_LEFT = 100;
+const PADDING_TOP = 30;
 
 function interpolateColor(t: number): string {
     const r = Math.round(180 + t * 75);
@@ -201,44 +203,38 @@ export function StarMap() {
     useEffect(() => { zoomRef.current = zoom; }, [zoom]);
     useEffect(() => { panRef.current = pan; }, [pan]);
 
-    useEffect(() => {
-        let timeoutId: ReturnType<typeof setTimeout>;
+    const updateViewportCenter = useCallback(() => {
+        const container = containerRef.current;
+        if (!container) return;
 
-        const updateCenter = () => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => {
-        if (containerRef.current) {
-            const header = document.querySelector('header');
-            const sidebar = document.querySelector('aside');
-            const headerHeight = header?.getBoundingClientRect().height ?? 0;
-            const sidebarWidth = sidebar?.getBoundingClientRect().width ?? 0;
+        const header = document.querySelector('header');
+        const sidebar = document.querySelector('aside');
+        const headerHeight = header?.getBoundingClientRect().height ?? 0;
+        const sidebarWidth = sidebar?.getBoundingClientRect().width ?? 0;
+        const availableWidth = container.clientWidth - sidebarWidth;
+        const availableHeight = container.clientHeight - headerHeight;
+        const nextCenter = {
+            x: sidebarWidth + availableWidth / 2,
+            y: headerHeight + availableHeight / 2,
+        };
 
-            const availableWidth = containerRef.current.clientWidth - sidebarWidth;
-            const availableHeight = containerRef.current.clientHeight - headerHeight;
+        setViewportCenter(current =>
+            current.x === nextCenter.x && current.y === nextCenter.y ? current : nextCenter
+        );
+    }, []);
 
-            const cx = sidebarWidth + availableWidth / 2;
-            const cy = headerHeight + availableHeight / 2;
+    useLayoutEffect(() => {
+        const frameId = requestAnimationFrame(updateViewportCenter);
+        const timeoutId: ReturnType<typeof setTimeout> = setTimeout(updateViewportCenter, 150);
 
-            setViewportCenter({ x: cx, y: cy });
-
-            const active = constellations.find(c => c.isActive);
-            if (active) {
-                setPan({
-                    x: cx - active.centroid.x + PADDING_LEFT,
-                    y: cy - active.centroid.y + PADDING_TOP,
-                });
-            }
-        }
-    }, 150);
-};
-
-        updateCenter();
-        window.addEventListener('resize', updateCenter);
+        updateViewportCenter();
+        window.addEventListener('resize', updateViewportCenter);
         return () => {
-            window.removeEventListener('resize', updateCenter);
+            window.removeEventListener('resize', updateViewportCenter);
+            cancelAnimationFrame(frameId);
             clearTimeout(timeoutId);
         };
-    }, []);
+    }, [updateViewportCenter]);
 
     const isOverUI = (e: MouseEvent | WheelEvent) =>
         !!(e.target as Element).closest(
@@ -247,10 +243,16 @@ export function StarMap() {
 
     useEffect(() => {
         fetchStarMap()
-            .then(setConstellations)
+            .then(data => {
+                setConstellations(data);
+                setZoom(1);
+                setZoomOrigin({ x: 0, y: 0 });
+                setPan({ x: 0, y: 0 });
+                updateViewportCenter();
+            })
             .catch(console.error)
             .finally(() => setLoading(false));
-    }, []);
+    }, [updateViewportCenter]);
 
     useEffect(() => {
         const handleWheel = (e: WheelEvent) => {
@@ -338,67 +340,14 @@ export function StarMap() {
         };
     }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
-    const PADDING_LEFT = 100;
-    const PADDING_TOP = 30;
-
-    useEffect(() => {
-        if (!loading && constellations.length > 0) {
-            const active = constellations.find(c => c.isActive);
-
-            if (active && containerRef.current) {
-                const centerX = containerRef.current.clientWidth / 2;
-                const centerY = containerRef.current.clientHeight / 2;
-
-                setPan({
-                    x: centerX - active.centroid.x + PADDING_LEFT,
-                    y: centerY - active.centroid.y + PADDING_TOP
-                });
-            }
-        }
-    }, [loading, constellations]);
-
-    useEffect(() => {
-        if (!containerRef.current) return;
-
-        const active = constellations.find(c => c.isActive);
-        if (active) {
-            const centerX = containerRef.current.clientWidth / 2;
-            const centerY = containerRef.current.clientHeight / 2;
-
-            setPan({
-                x: centerX - active.centroid.x + PADDING_LEFT,
-                y: centerY - active.centroid.y + PADDING_TOP
-            });
-        }
-    }, [constellations]);
-
-    const RESET_ZOOM = 1;
-
-    useEffect(() => {
-        const active = constellations.find(c => c.isActive);
-        if (!active || !containerRef.current) return;
-
-        requestAnimationFrame(() => {
-            if (!containerRef.current) return;
-
-            const centerX = containerRef.current.clientWidth / 2;
-            const centerY = containerRef.current.clientHeight / 2;
-
-            setZoom(RESET_ZOOM);
-
-            const targetX = centerX - active.centroid.x + PADDING_LEFT;
-            const targetY = centerY - active.centroid.y + PADDING_TOP;
-
-            setPan({ x: targetX, y: targetY });
-        });
-    }, [constellations]);
-
     if (loading) {
         return (
-            <div className={styles.loading}>
-                <div className={styles.loadingDot} />
-                <div className={styles.loadingDot} />
-                <div className={styles.loadingDot} />
+            <div className={styles.container} ref={containerRef}>
+                <div className={styles.loading}>
+                    <div className={styles.loadingDot} />
+                    <div className={styles.loadingDot} />
+                    <div className={styles.loadingDot} />
+                </div>
             </div>
         );
     }
@@ -406,8 +355,8 @@ export function StarMap() {
     const active = constellations.find(c => c.isActive);
     const graveyard = constellations.filter(c => !c.isActive);
 
-    const activeOffsetX = active ? viewportCenter.x - active.centroid.x : viewportCenter.x;
-    const activeOffsetY = active ? viewportCenter.y - active.centroid.y : viewportCenter.y;
+    const activeOffsetX = active ? viewportCenter.x - active.centroid.x + PADDING_LEFT : viewportCenter.x;
+    const activeOffsetY = active ? viewportCenter.y - active.centroid.y + PADDING_TOP : viewportCenter.y;
 
     const graveyardPositions = graveyard.map((c, i) => {
         const angle = (i / Math.max(graveyard.length, 1)) * 360 - 90;
@@ -443,7 +392,7 @@ export function StarMap() {
                 return updated;
             });
             setSelectedStar(null);
-        } catch (err) {
+        } catch {
             alert("Failed to remove star.");
         }
     };
