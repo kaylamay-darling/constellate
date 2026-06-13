@@ -7,6 +7,7 @@
     position: sticky;
     top: 0;
     z-index: 100;
+    gap: var(--spacing-sm);
 }
 
 .logoArea {
@@ -20,6 +21,7 @@
     display: flex;
     align-items: stretch;
     flex: 1;
+    min-width: 0;
     justify-content: center;
     gap: var(--spacing-lg);
     color: var(--text-primary);
@@ -28,6 +30,7 @@
 
 .actionArea {
     flex: 0 0 auto;
+    min-width: max-content;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -39,6 +42,7 @@
     font-family: var(--font-family-primary);
     color: var(--text-primary);
     height: 100%;
+    white-space: nowrap;
 }
 
 .actionArea:hover {
@@ -117,5 +121,25 @@
 
     .logoArea {
         padding-right: var(--spacing-md);
+    }
+
+    .container {
+        padding: 0 var(--spacing-sm);
+        gap: var(--spacing-xs);
+    }
+
+    .navLinks {
+        justify-content: flex-start;
+        gap: 0;
+    }
+
+    .navLink {
+        padding: 0 var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+
+    .actionArea {
+        padding: 0 var(--spacing-sm);
+        font-size: var(--font-size-sm);
     }
 }

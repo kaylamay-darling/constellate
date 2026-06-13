@@ -198,6 +198,7 @@ export function StarMap() {
     const panRef = useRef(pan);
     const isDraggingRef = useRef(false);
     const dragStartRef = useRef({ x: 0, y: 0 });
+    const touchStartRef = useRef({ x: 0, y: 0 });
 
     useEffect(() => { zoomRef.current = zoom; }, [zoom]);
     useEffect(() => { panRef.current = pan; }, [pan]);
@@ -235,10 +236,10 @@ export function StarMap() {
         };
     }, [updateViewportCenter]);
 
-    const isOverUI = (e: MouseEvent | WheelEvent) =>
+    const isOverUI = useCallback((e: MouseEvent | WheelEvent | TouchEvent) =>
         !!(e.target as Element).closest(
             '[class*="modal"], [class*="Modal"], [class*="menu"], [class*="Menu"], [class*="addButton"], [class*="list"], aside, header'
-        );
+        ), []);
 
     useEffect(() => {
         fetchStarMap()
@@ -267,7 +268,7 @@ export function StarMap() {
 
         window.addEventListener('wheel', handleWheel, { passive: false });
         return () => window.removeEventListener('wheel', handleWheel);
-    }, []);
+    }, [isOverUI]);
 
     useEffect(() => {
         const handleMouseDown = (e: MouseEvent) => {
@@ -296,10 +297,23 @@ export function StarMap() {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
         };
-    }, []);
+    }, [isOverUI]);
 
     const handleTouchStart = useCallback((e: TouchEvent) => {
+        if (isOverUI(e)) return;
+
+        if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            isDraggingRef.current = true;
+            touchStartRef.current = {
+                x: touch.clientX - panRef.current.x,
+                y: touch.clientY - panRef.current.y,
+            };
+            return;
+        }
+
         if (e.touches.length === 2) {
+            isDraggingRef.current = false;
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
             pinchStartDistRef.current = Math.sqrt(dx * dx + dy * dy);
@@ -309,9 +323,21 @@ export function StarMap() {
             const rect = containerRef.current?.getBoundingClientRect();
             if (rect) setZoomOrigin({ x: midX - rect.left, y: midY - rect.top });
         }
-    }, []);
+    }, [isOverUI]);
 
     const handleTouchMove = useCallback((e: TouchEvent) => {
+        if (isOverUI(e)) return;
+
+        if (e.touches.length === 1 && isDraggingRef.current) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            setPan({
+                x: touch.clientX - touchStartRef.current.x,
+                y: touch.clientY - touchStartRef.current.y,
+            });
+            return;
+        }
+
         if (e.touches.length === 2 && pinchStartDistRef.current !== null) {
             e.preventDefault();
             const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -320,10 +346,13 @@ export function StarMap() {
             const scale = dist / pinchStartDistRef.current;
             setZoom(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinchStartZoomRef.current * scale)));
         }
-    }, []);
+    }, [isOverUI]);
 
     const handleTouchEnd = useCallback(() => {
-        pinchStartDistRef.current = null;
+        isDraggingRef.current = false;
+        if (pinchStartDistRef.current !== null) {
+            pinchStartDistRef.current = null;
+        }
     }, []);
 
     useEffect(() => {
