@@ -12,7 +12,6 @@
     align-items: center;
     gap: var(--spacing-md);
     padding: var(--spacing-md);
-    background: var(--glassmorphism-shadow);
     border: 1px solid var(--glassmorphism-shadow);
     border-radius: var(--spacing-sm);
     width: 100%;

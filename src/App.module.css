@@ -4,6 +4,7 @@
     height: 100vh;
     width: 100vw;
     overflow: hidden;
+    background: transparent;
 }
 
 .header {
@@ -16,7 +17,8 @@
     display: flex;
     flex-direction: row;
     gap: var(--spacing-md);
-    overflow: scroll
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .mainLayout > aside {

@@ -4,7 +4,7 @@
     padding: var(--spacing-xl);
     font-family: var(--font-family-secondary);
     color: var(--text-primary);
-    background-color: var(--background-primary);
+    background: transparent;
 }
 
 .header {
