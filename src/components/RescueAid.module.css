@@ -1,0 +1,190 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-sm);
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--glassmorphism-shadow);
+    border: 1px solid var(--glassmorphism-shadow);
+    border-radius: var(--spacing-sm);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.title {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-md);
+    color: var(--text-primary);
+    align-self: flex-start;
+}
+
+.circleWrapper {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.circle {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-dark) 0%, var(--cta-text-hover) 100%);
+    border: 1px solid var(--cta-text);
+    transition: transform 0.05s linear;
+}
+
+.glow {
+    box-shadow:
+        0 0 20px var(--cta-text),
+        0 0 40px var(--cta-text),
+        0 0 80px var(--celestial-glow);
+    animation: glowPulse 0.6s ease-out forwards;
+}
+
+@keyframes glowPulse {
+    0% {
+        box-shadow:
+            0 0 20px var(--cta-text),
+            0 0 40px var(--cta-text),
+            0 0 80px var(--celestial-glow);
+    }
+    100% {
+        box-shadow: none;
+    }
+}
+
+.phaseLabel {
+    position: relative;
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-lg);
+    color: var(--text-celestial);
+    z-index: 1;
+    text-shadow: 0 0 8px var(--celestial-glow);
+}
+
+.phaseTimer {
+    position: absolute;
+    bottom: 60px;
+    font-family: var(--font-family-secondary);
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    z-index: 1;
+}
+
+.startButton {
+    padding: var(--spacing-sm);
+    background: transparent;
+    border: 1px solid var(--cta-text);
+    color: var(--cta-text);
+    border-radius: var(--spacing-sm);
+    font-family: var(--font-family-secondary);
+    font-size: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+    text-transform: uppercase;
+    width: 50%;
+    margin-bottom: var(--spacing-md);
+}
+
+
+.startButton:hover {
+    background: var(--cta-text);
+    color: var(--background-surface);
+}
+
+.phaseControls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    width: 100%;
+    max-width: 320px;
+}
+
+.phaseRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--glassmorphism-shadow);
+    border-radius: var(--spacing-sm);
+    border: 1px solid var(--glassmorphism-highlight);
+}
+
+.phaseNameLabel {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-sm);
+    color: var(--text-intermediate);
+    flex: 1;
+}
+
+.adjustBtn {
+    background: transparent;
+    border: 1px solid var(--glassmorphism-highlight);
+    color: var(--cta-text);
+    border-radius: var(--spacing-xs);
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: var(--font-size-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+    line-height: 1;
+}
+
+.adjustBtn:hover {
+    background: var(--cta-text-hover);
+}
+
+.phaseDuration {
+    font-family: monospace;
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    width: 36px;
+    text-align: center;
+}
+
+.presets {
+    margin-top: var(--spacing-md);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    justify-content: center;
+}
+
+.presetBtn {
+    background: transparent;
+    border: 1px solid var(--glassmorphism-highlight);
+    color: var(--text-muted);
+    border-radius: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-family: var(--font-family-secondary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.presetBtn:hover {
+    border-color: var(--cta-text);
+    color: var(--cta-text);
+}
+
+.presetActive {
+    border-color: var(--cta-text);
+    color: var(--cta-text);
+    background: var(--cta-text-hover);
+}

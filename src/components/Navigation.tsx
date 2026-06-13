@@ -5,19 +5,16 @@ import styles from './Navigation.module.css';
 
 interface NavigationProps {
     currentPage?: 'Asterism' | 'Support';
+    onNavigate: (page: 'Asterism' | 'Support') => void;
 }
 
-export default function Navigation({ currentPage = 'Asterism' }: NavigationProps) {
+export default function Navigation({ currentPage = 'Asterism', onNavigate }: NavigationProps) {
     const { session, toggleLoginModal, toggleLogoutModal } = useAuth();
 
     return (
         <GlassContainer className={styles.container}>
             <div className={styles.logoArea}>
-                <img
-                    src={constellateIcon}
-                    alt="Constellate Logo"
-                    className={styles.icon}
-                />
+                <img src={constellateIcon} alt="Constellate Logo" className={styles.icon} />
                 <span className={styles.logoText}>CONSTELLATE</span>
             </div>
 
@@ -26,6 +23,8 @@ export default function Navigation({ currentPage = 'Asterism' }: NavigationProps
                     className={`${styles.navLink} ${currentPage === 'Asterism' ? styles.navLinkActive : ''}`}
                     aria-current={currentPage === 'Asterism' ? 'page' : undefined}
                     tabIndex={0}
+                    onClick={() => onNavigate('Asterism')}
+                    onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onNavigate('Asterism')}
                 >
                     Asterism
                 </span>
@@ -33,20 +32,20 @@ export default function Navigation({ currentPage = 'Asterism' }: NavigationProps
                     className={`${styles.navLink} ${currentPage === 'Support' ? styles.navLinkActive : ''}`}
                     aria-current={currentPage === 'Support' ? 'page' : undefined}
                     tabIndex={0}
+                    onClick={() => onNavigate('Support')}
+                    onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onNavigate('Support')}
                 >
                     Support
                 </span>
             </nav>
 
-            <div 
-                className={styles.actionArea} 
+            <div
+                className={styles.actionArea}
                 tabIndex={!session ? 0 : -1}
                 role={!session ? 'button' : undefined}
                 onClick={!session ? toggleLoginModal : undefined}
                 onKeyDown={(e) => {
-                    if (!session && (e.key === 'Enter' || e.key === ' ')) {
-                        toggleLoginModal();
-                    }
+                    if (!session && (e.key === 'Enter' || e.key === ' ')) toggleLoginModal();
                 }}
             >
                 {session ? (
@@ -56,9 +55,7 @@ export default function Navigation({ currentPage = 'Asterism' }: NavigationProps
                         tabIndex={0}
                         onClick={toggleLogoutModal}
                         onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                toggleLogoutModal();
-                            }
+                            if (e.key === 'Enter' || e.key === ' ') toggleLogoutModal();
                         }}
                         aria-label="Open logout modal"
                     >
@@ -66,11 +63,7 @@ export default function Navigation({ currentPage = 'Asterism' }: NavigationProps
                             {session.user.user_metadata.full_name?.split(' ')[0] || 'User'}
                         </span>
                         {session.user.user_metadata.avatar_url && (
-                            <img 
-                                src={session.user.user_metadata.avatar_url} 
-                                alt="Profile" 
-                                className={styles.userAvatar} 
-                            />
+                            <img src={session.user.user_metadata.avatar_url} alt="Profile" className={styles.userAvatar} />
                         )}
                     </div>
                 ) : (

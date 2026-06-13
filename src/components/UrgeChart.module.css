@@ -1,0 +1,134 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--glassmorphism-shadow);
+    border: 1px solid var(--glassmorphism-shadow);
+    border-radius: var(--spacing-sm);
+}
+
+.title {
+    font-family: var(--font-family-primary);
+    color: var(--text-primary);
+}
+
+.chartWrapper {
+    position: relative;
+    width: 100%;
+}
+
+.svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.gridline {
+    stroke: var(--glassmorphism-highlight);
+    stroke-width: 1;
+}
+
+.yLabel {
+    fill: var(--text-muted);
+    font-size: 10px;
+    text-anchor: end;
+    font-family: monospace;
+}
+
+.xLabel {
+    fill: var(--text-muted);
+    font-size: 11px;
+    text-anchor: middle;
+    font-family: var(--font-family-secondary);
+}
+
+.dataPoint {
+    cursor: pointer;
+    transition: r 0.1s ease;
+}
+
+.dataPoint:hover {
+    r: 6;
+}
+
+.tooltipBg {
+    fill: var(--background-surface);
+    stroke: var(--glassmorphism-highlight);
+    stroke-width: 1;
+}
+
+.tooltipText {
+    fill: var(--text-primary);
+    font-size: 10px;
+    text-anchor: middle;
+    font-family: var(--font-family-secondary);
+}
+
+.emptyState {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-family-primary);
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--glassmorphism-highlight);
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+}
+
+.checkbox {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--text-muted);
+    border-radius: 3px;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    transition: 0.2s;
+    flex-shrink: 0;
+}
+
+.checkbox:checked {
+    background: var(--cta-text);
+    border-color: var(--cta-text);
+}
+
+.checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -1px;
+    left: 2px;
+    font-size: 10px;
+    color: var(--background-surface);
+}
+
+.swatch {
+    width: 24px;
+    height: 3px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.legendLabel {
+    font-family: var(--font-family-secondary);
+    font-size: var(--font-size-sm);
+    color: var(--text-intermediate);
+}

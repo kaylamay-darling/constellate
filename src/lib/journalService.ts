@@ -1,4 +1,3 @@
-// src/lib/journalService.ts
 import { supabase } from "./supabaseClient";
 import type { JournalEntry } from "../types/journal";
 

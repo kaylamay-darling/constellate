@@ -1,0 +1,102 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--glassmorphism-shadow);
+    border: 1px solid var(--glassmorphism-shadow);
+    border-radius: var(--spacing-sm);
+}
+
+.title {
+    font-family: var(--font-family-primary);
+    color: var(--text-primary);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.monthLabel {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-md);
+    color: var(--text-primary);
+}
+
+.arrow {
+    background: transparent;
+    border: none;
+    color: var(--cta-text);
+    font-size: var(--font-size-lg);
+    cursor: pointer;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--spacing-sm);
+    transition: 0.2s;
+    line-height: 1;
+}
+
+.arrow:hover {
+    background: var(--cta-text-hover);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.dayLabel {
+    font-family: var(--font-family-secondary);
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    text-align: center;
+    padding: var(--spacing-xs) 0;
+    opacity: 0.6;
+}
+
+.empty {
+    aspect-ratio: 1;
+}
+
+.day {
+    position: relative;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--spacing-xs);
+    background: var(--glassmorphism-shadow);
+    border: 1px solid transparent;
+    transition: 0.2s;
+}
+
+.day:hover {
+    border-color: var(--glassmorphism-highlight);
+}
+
+.today {
+    border-color: var(--cta-text);
+}
+
+.relapse {
+    background: var(--color-error-bg);
+    border-color: var(--color-error-border);
+}
+
+.dayNumber {
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-family: var(--font-family-secondary);
+    font-size: 9px;
+    color: var(--text-muted);
+}
+
+.urgeBadge {
+    font-family: var(--font-family-secondary);
+    font-size: var(--font-size-md);
+    color: var(--cta-text);
+    font-weight: 700;
+}

@@ -1,8 +1,6 @@
 import { supabase } from "./supabaseClient";
 import type { JournalEntry } from "../types/journal";
 
-// --- Types ---
-
 export interface StarData {
     id: string;
     created_at: string;
@@ -39,8 +37,6 @@ const MAX_STEP            = 200;
 const MAX_EDGE_DISTANCE   = MAX_STEP * 2.5;
 const MAX_NEIGHBORS       = 3;
 const BACKTRACK_THRESHOLD = 135;
-
-// --- Math helpers ---
 
 function normalize(value: number, min: number, max: number): number {
     return (value - min) / (max - min);
@@ -91,7 +87,6 @@ function computeCentroid(stars: StarData[]): { x: number; y: number } {
     return { x, y };
 }
 
-// Add this helper function at the top of lib/starMapService.ts
 function seededRandom(seed: number) {
     return function() {
         seed |= 0; seed = seed + 0x9e3779b9 | 0;
@@ -126,8 +121,6 @@ export function buildEdges(
 
         for (const { j } of distances.slice(0, MAX_NEIGHBORS)) {
             if (random() < PRUNE_CHANCE) continue;
-            // -----------------------------
-
             const key = [stars[i].id, stars[j].id].sort().join('-');
             if (added.has(key)) continue;
             added.add(key);
@@ -146,8 +139,6 @@ export function buildEdges(
 
     return edges;
 }
-
-// --- Main fetch ---
 
 export async function fetchStarMap(): Promise<ConstellationData[]> {
     const { data: { user } } = await supabase.auth.getUser();
@@ -210,7 +201,6 @@ export async function fetchStarMap(): Promise<ConstellationData[]> {
         const delta    = smoothDelta(rawDelta, prevDelta);
         const angle    = computeAngle(delta, mood_n, energy_n, anxiety_n);
 
-        // Relapse → kill constellation
         const hasRelapse = entry.addictions &&
             Object.values(entry.addictions as Record<string, { urge: boolean; relapse: boolean }>)
                 .some(a => a.relapse);
@@ -219,7 +209,6 @@ export async function fetchStarMap(): Promise<ConstellationData[]> {
             finalizeConstellation(false);
         }
 
-        // Backtrack or step forward
         if (shouldBacktrack(angle) && currentStars.length > 1) {
             const anchor = currentStars[lastStrongStarIndex];
             x = anchor.x;

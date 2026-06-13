@@ -17,6 +17,9 @@ import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/auth';
 import { LoginModal } from './components/LoginModal';
 import { LogoutModal } from './components/LogoutModal';
+import { SobrietyTracking } from './components/SobrietyTracking';
+import { RescueAid } from './components/RescueAid';
+import { SupportPage } from './components/SupportPage';
 
 const TOOL_LABELS: Record<ModalID, string> = {
   'journal': 'Journal',
@@ -24,19 +27,6 @@ const TOOL_LABELS: Record<ModalID, string> = {
   'sobriety-track': 'Sobriety Tracking',
   'rescue-aid': 'Rescue Aid',
 };
-
-
-const SobrietyTracking = () => (
-  <div>
-    <p>Track your sobriety progress here.</p>
-  </div>
-);
-
-const RescueAid = () => (
-  <div>
-    <p>Open rescue resources here.</p>
-  </div>
-);
 
 interface AuthenticatedSidebarProps {
   activeView: ModalID | null;
@@ -67,6 +57,11 @@ function AuthenticatedSidebar({ activeView, onAction, onLogout }: AuthenticatedS
 
 function App() {
   const [activeView, setActiveView] = useState<ModalID | null>(null);
+  const [currentPage, setCurrentPage] = useState<'Asterism' | 'Support'>('Asterism');
+
+  const handleNavigate = (page: 'Asterism' | 'Support') => {
+    setCurrentPage(page);
+  };
 
   const handleAction = (modalId: ModalID) => {
     setActiveView(modalId);
@@ -92,21 +87,34 @@ function App() {
   return (
     <AuthProvider>
       <div className={styles.appContainer}>
-        <StarMap key={starMapKey} />
         <header className={styles.header}>
-          <Navigation />
+          <Navigation
+            currentPage={currentPage}
+            onNavigate={handleNavigate}
+          />
         </header>
 
         <div className={styles.mainLayout}>
-          <aside>
-            <AuthenticatedSidebar
-              activeView={activeView}
-              onAction={handleAction}
-              onLogout={() => setActiveView(null)}
-            />
-          </aside>
+          {currentPage === 'Asterism' && (
+            <>
+              <StarMap key={starMapKey} />
+              <aside>
+                <AuthenticatedSidebar
+                  activeView={activeView}
+                  onAction={handleAction}
+                  onLogout={() => setActiveView(null)}
+                />
+              </aside>
+            </>
+          )}
+
           <main>
-            <WelcomeSection />
+            {currentPage === 'Asterism' ? (
+              <WelcomeSection />
+            ) : (
+              <SupportPage />
+            )}
+
             {activeView && (
               <ModalContainer onClose={() => setActiveView(null)}>
                 <ToolWrapper
@@ -119,6 +127,7 @@ function App() {
             )}
           </main>
         </div>
+
         <LoginModal />
         <LogoutModal />
       </div>

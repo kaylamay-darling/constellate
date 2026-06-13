@@ -162,7 +162,7 @@ function renderConstellation(
                         key={`${edge.fromId}-${edge.toId}`}
                         from={from}
                         to={to}
-                        opacity={dimmed ? edge.opacity * 0.15 : edge.opacity} // dimmer graveyard edges
+                        opacity={dimmed ? edge.opacity * 0.15 : edge.opacity}
                         offsetX={offsetX}
                         offsetY={offsetY}
                     />
@@ -297,7 +297,6 @@ export function StarMap() {
         };
     }, []);
 
-    // Pinch to zoom
     const handleTouchStart = useCallback((e: TouchEvent) => {
         if (e.touches.length === 2) {
             const dx = e.touches[0].clientX - e.touches[1].clientX;

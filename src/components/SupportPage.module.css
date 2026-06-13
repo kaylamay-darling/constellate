@@ -1,0 +1,112 @@
+.page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--spacing-xl);
+    font-family: var(--font-family-secondary);
+    color: var(--text-primary);
+    background-color: var(--background-primary);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.title {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-celestial);
+}
+
+.subtitle {
+    font-size: var(--font-size-md);
+    color: var(--text-intermediate);
+}
+
+.section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.categoryTitle {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-md);
+    margin-bottom: var(--spacing-md);
+    border-bottom: var(--border-glow);
+    padding-bottom: var(--spacing-sm);
+    color: var(--text-celestial);
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-lg);
+    border: var(--border-glow);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-primary);
+    background: var(--background-surface);
+    backdrop-filter: blur(var(--blur-radius));
+    transition: transform 0.2s, background 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    background: var(--background-surface-hover);
+    border-color: var(--cta-text);
+    box-shadow: 0 4px 20px var(--celestial-glow);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: var(--spacing-sm);
+}
+
+.resourceName {
+    font-weight: 700;
+    font-size: var(--font-size-md);
+}
+
+.description {
+    margin: 0 0 var(--spacing-md) 0;
+    font-size: var(--font-size-md);
+    line-height: 1.4;
+    color: var(--text-muted);
+}
+
+.contact {
+    font-weight: 600;
+    color: var(--cta-text);
+    font-size: var(--font-size-sm);
+}
+
+.card:hover .contact {
+    color: var(--cta-text-hover);
+}
+
+.footer {
+    margin-top: var(--spacing-xl);
+    text-align: center;
+    padding-top: var(--spacing-lg);
+    border-top: var(--border-glow);
+}
+
+.externalLink {
+    color: var(--cta-text);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.externalLink:hover {
+    color: var(--cta-text-hover);
+    text-decoration: underline;
+}
