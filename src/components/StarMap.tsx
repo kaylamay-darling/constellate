@@ -410,11 +410,6 @@ export function StarMap() {
                     renderConstellation(constellation, offsetX, offsetY, setSelectedStar, true)
                 )}
                 {active && renderConstellation(active, activeOffsetX, activeOffsetY, setSelectedStar, false)}
-                {!active && !loading && (
-                    <div className={styles.emptyState}>
-                        <p>Your constellation awaits.<br />Archive your first journal entry to begin.</p>
-                    </div>
-                )}
             </div>
             {selectedStar && (
                 <JournalModal
