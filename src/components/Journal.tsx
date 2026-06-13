@@ -7,10 +7,11 @@ import { ToggleSwitch } from './ToggleSwitch';
 
 interface JournalProps {
     onClose: () => void;
+    onEntrySaved?: () => void;
 }
 
 
-export default function Journal({ onClose }: JournalProps) {
+export default function Journal({ onClose, onEntrySaved }: JournalProps) {
     const [mood, setMood] = useState<number | null>(null);
     const [energy, setEnergy] = useState<number | null>(null);
     const [affect, setAffect] = useState<number | null>(null);
@@ -33,33 +34,35 @@ export default function Journal({ onClose }: JournalProps) {
     };
 
     const handleSave = async () => {
-    if (
-        mood === null ||
-        energy === null ||
-        affect === null ||
-        anxiety === null ||
-        journalText.trim() === ''
-    ) return;
+        if (
+            mood === null ||
+            energy === null ||
+            affect === null ||
+            anxiety === null ||
+            journalText.trim() === ''
+        ) return;
 
-    try {
-        const entryData = {
-            daily_pulse: { mood, energy, affect, anxiety },
-            content: journalText,
-            addictions: journalEvents,
-        };
+        try {
+            const entryData = {
+                daily_pulse: { mood, energy, affect, anxiety },
+                content: journalText,
+                addictions: journalEvents,
+            };
 
-        await saveJournalEntry(entryData);
+            await saveJournalEntry(entryData);
+            onEntrySaved?.();
+            onClose();
 
-        for (const [name, events] of Object.entries(journalEvents)) {
-            if (events.urge) await logEvent(name, 'urge');
-            if (events.relapse) await logEvent(name, 'relapse');
+            for (const [name, events] of Object.entries(journalEvents)) {
+                if (events.urge) await logEvent(name, 'urge');
+                if (events.relapse) await logEvent(name, 'relapse');
+            }
+
+            onClose();
+        } catch (error) {
+            console.error("Error saving entry:", error);
         }
-
-        onClose();
-    } catch (error) {
-        console.error("Error saving entry:", error);
-    }
-};
+    };
 
     return (
         <div className={styles.journalContainer}>

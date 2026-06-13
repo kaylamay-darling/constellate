@@ -91,22 +91,33 @@ function computeCentroid(stars: StarData[]): { x: number; y: number } {
     return { x, y };
 }
 
-// --- Edge building ---
+// Add this helper function at the top of lib/starMapService.ts
+function seededRandom(seed: number) {
+    return function() {
+        seed |= 0; seed = seed + 0x9e3779b9 | 0;
+        let t = seed ^ seed >>> 16; t = Math.imul(t, 0x21f0aaad);
+        t = t ^ t >>> 15; t = Math.imul(t, 0x735a2d97);
+        return ((t = t ^ t >>> 15) >>> 0) / 4294967296;
+    }
+}
 
-function buildEdges(
+export function buildEdges(
     stars: StarData[],
     wellnessById: Record<string, number>
 ): EdgeData[] {
     const edges: EdgeData[] = [];
     const added = new Set<string>();
+    
+    const random = seededRandom(stars.length * 1000);
+    const PRUNE_CHANCE = 0.5;
 
     for (let i = 0; i < stars.length; i++) {
         const distances: { j: number; dist: number }[] = [];
 
         for (let j = 0; j < stars.length; j++) {
             if (i === j) continue;
-            const dx   = stars[i].x - stars[j].x;
-            const dy   = stars[i].y - stars[j].y;
+            const dx = stars[i].x - stars[j].x;
+            const dy = stars[i].y - stars[j].y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist <= MAX_EDGE_DISTANCE) distances.push({ j, dist });
         }
@@ -114,6 +125,9 @@ function buildEdges(
         distances.sort((a, b) => a.dist - b.dist);
 
         for (const { j } of distances.slice(0, MAX_NEIGHBORS)) {
+            if (random() < PRUNE_CHANCE) continue;
+            // -----------------------------
+
             const key = [stars[i].id, stars[j].id].sort().join('-');
             if (added.has(key)) continue;
             added.add(key);
@@ -123,8 +137,8 @@ function buildEdges(
             );
 
             edges.push({
-                fromId:  stars[i].id,
-                toId:    stars[j].id,
+                fromId: stars[i].id,
+                toId: stars[j].id,
                 opacity: Math.min(1, deltaW * 2),
             });
         }
@@ -178,6 +192,7 @@ export async function fetchStarMap(): Promise<ConstellationData[]> {
         lastStrongStarIndex = 0;
     };
 
+    
     for (const entry of entries) {
         const pulse   = entry.daily_pulse;
         const mood    = pulse.mood    ?? 3;
@@ -238,4 +253,13 @@ export async function fetchStarMap(): Promise<ConstellationData[]> {
 
     finalizeConstellation(true);
     return constellations;
+}
+
+export async function deleteStar(starId: string): Promise<void> {
+    const { error } = await supabase
+        .from("journal_entries")
+        .delete()
+        .eq("id", starId);
+
+    if (error) throw error;
 }

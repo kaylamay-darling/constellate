@@ -22,6 +22,14 @@
   --border-glow: 1px solid rgba(139, 117, 230, 0.3);
   --celestial-glow: rgba(138, 43, 226, 0.4);
 
+  --color-error-base: #ff4d4f;
+  --color-error-hover: #ff7875;
+  --color-error-bg: rgba(255, 77, 79, 0.1);
+  --color-error-border: #ffa39e;
+  
+  --color-error-text: #cf1322;
+  --color-error-shadow: 0 0 8px rgba(255, 77, 79, 0.3);
+
   --glassmorphism-background: rgba(255, 255, 255, 0.1);
   --glassmorphism-shadow: rgba(255, 255, 255, 0.05);
   --glassmorphism-highlight: rgba(255, 255, 255, 0.2);

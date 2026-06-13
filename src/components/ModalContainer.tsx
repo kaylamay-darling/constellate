@@ -5,9 +5,10 @@ import styles from './ModalContainer.module.css';
 interface ModalContainerProps {
     children: React.ReactNode;
     onClose: () => void;
+    zIndex?: number;
 }
 
-export default function ModalContainer({ children, onClose }: ModalContainerProps) {
+export default function ModalContainer({ children, onClose, zIndex = 100 }: ModalContainerProps) {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
@@ -17,7 +18,7 @@ export default function ModalContainer({ children, onClose }: ModalContainerProp
     }, [onClose]);
 
     return (
-        <div className={styles.overlay} onClick={onClose}>
+        <div className={styles.overlay} onClick={onClose} >
             <div
                 className={styles.modalContent}
                 onClick={(e) => e.stopPropagation()}

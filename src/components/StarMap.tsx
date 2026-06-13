@@ -1,6 +1,15 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { fetchStarMap, type ConstellationData, type StarData, type EdgeData } from '../lib/starMapService';
+import {
+    fetchStarMap,
+    deleteStar,
+    buildEdges,
+    type ConstellationData,
+    type StarData,
+    type EdgeData
+} from '../lib/starMapService';
 import styles from './StarMap.module.css';
+import { ConfirmationModal } from './ConfirmationModal';
+
 
 const GRAVEYARD_RADIUS = 900;
 const STAR_BASE_SIZE = 6;
@@ -17,7 +26,7 @@ function interpolateColor(t: number): string {
 }
 
 function twinkleDuration(anxiety: number): number {
-    return  - anxiety * 4;
+    return - anxiety * 4;
 }
 
 function starGlow(brightness: number, color: string): string {
@@ -94,23 +103,42 @@ function StarNode({ star, offsetX, offsetY, onClick, dimmed = false }: StarNodeP
 interface JournalModalProps {
     star: StarData;
     onClose: () => void;
+    onDelete: (id: string) => void;
 }
 
-function JournalModal({ star, onClose }: JournalModalProps) {
+function JournalModal({ star, onClose, onDelete }: JournalModalProps) {
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
     const date = new Date(star.created_at).toLocaleDateString('en-US', {
         year: 'numeric', month: 'long', day: 'numeric'
     });
 
     return (
-        <div className={styles.modalOverlay} onClick={onClose}>
-            <div className={styles.journalModal} onClick={e => e.stopPropagation()}>
-                <div className={styles.modalDate}>{date}</div>
-                <p className={styles.modalContent}>
-                    {star.entry.content || <em>No entry written.</em>}
-                </p>
-                <button className={styles.modalClose} onClick={onClose}>✕</button>
+        <>
+            <div className={styles.modalOverlay} onClick={onClose}>
+                <div className={styles.journalModal} onClick={e => e.stopPropagation()}>
+                    <div className={styles.modalDate}>{date}</div>
+                    <p className={styles.modalContent}>
+                        {star.entry.content || <em>No entry written.</em>}
+                    </p>
+                    <button className={styles.deleteButton} onClick={() => setShowDeleteConfirm(true)}>
+                        Delete Entry
+                    </button>
+                    <button className={styles.modalClose} onClick={onClose}>✕</button>
+                </div>
             </div>
-        </div>
+
+            {showDeleteConfirm && (
+                <ConfirmationModal
+                    title="Delete Entry?"
+                    message="This star will be removed from your constellation permanently."
+                    confirmLabel="Delete"
+                    onConfirm={() => onDelete(star.id)}
+                    onCancel={() => setShowDeleteConfirm(false)}
+                    zIndex={200}
+                />
+            )}
+        </>
     );
 }
 
@@ -127,7 +155,7 @@ function renderConstellation(
         <div key={constellation.id} className={styles.constellation}>
             {constellation.edges.map((edge: EdgeData) => {
                 const from = starById[edge.fromId];
-                const to   = starById[edge.toId];
+                const to = starById[edge.toId];
                 if (!from || !to) return null;
                 return (
                     <EdgeLine
@@ -174,18 +202,48 @@ export function StarMap() {
     useEffect(() => { panRef.current = pan; }, [pan]);
 
     useEffect(() => {
+        let timeoutId: ReturnType<typeof setTimeout>;
+
         const updateCenter = () => {
-            if (containerRef.current) {
-                setViewportCenter({
-                    x: containerRef.current.clientWidth / 2,
-                    y: containerRef.current.clientHeight / 2,
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+        if (containerRef.current) {
+            const header = document.querySelector('header');
+            const sidebar = document.querySelector('aside');
+            const headerHeight = header?.getBoundingClientRect().height ?? 0;
+            const sidebarWidth = sidebar?.getBoundingClientRect().width ?? 0;
+
+            const availableWidth = containerRef.current.clientWidth - sidebarWidth;
+            const availableHeight = containerRef.current.clientHeight - headerHeight;
+
+            const cx = sidebarWidth + availableWidth / 2;
+            const cy = headerHeight + availableHeight / 2;
+
+            setViewportCenter({ x: cx, y: cy });
+
+            const active = constellations.find(c => c.isActive);
+            if (active) {
+                setPan({
+                    x: cx - active.centroid.x + PADDING_LEFT,
+                    y: cy - active.centroid.y + PADDING_TOP,
                 });
             }
-        };
+        }
+    }, 150);
+};
+
         updateCenter();
         window.addEventListener('resize', updateCenter);
-        return () => window.removeEventListener('resize', updateCenter);
+        return () => {
+            window.removeEventListener('resize', updateCenter);
+            clearTimeout(timeoutId);
+        };
     }, []);
+
+    const isOverUI = (e: MouseEvent | WheelEvent) =>
+        !!(e.target as Element).closest(
+            '[class*="modal"], [class*="Modal"], [class*="menu"], [class*="Menu"], [class*="addButton"], [class*="list"], aside, header'
+        );
 
     useEffect(() => {
         fetchStarMap()
@@ -194,9 +252,9 @@ export function StarMap() {
             .finally(() => setLoading(false));
     }, []);
 
-    // Scroll to zoom
     useEffect(() => {
         const handleWheel = (e: WheelEvent) => {
+            if (isOverUI(e)) return;
             e.preventDefault();
             const rect = containerRef.current?.getBoundingClientRect();
             if (!rect) return;
@@ -210,9 +268,9 @@ export function StarMap() {
         return () => window.removeEventListener('wheel', handleWheel);
     }, []);
 
-    // Drag to pan
     useEffect(() => {
         const handleMouseDown = (e: MouseEvent) => {
+            if (isOverUI(e)) return;
             isDraggingRef.current = true;
             dragStartRef.current = { x: e.clientX - panRef.current.x, y: e.clientY - panRef.current.y };
         };
@@ -282,23 +340,59 @@ export function StarMap() {
     }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
     const PADDING_LEFT = 100;
-    const PADDING_TOP = -50;
+    const PADDING_TOP = 30;
 
     useEffect(() => {
-    if (!loading && constellations.length > 0) {
+        if (!loading && constellations.length > 0) {
+            const active = constellations.find(c => c.isActive);
+
+            if (active && containerRef.current) {
+                const centerX = containerRef.current.clientWidth / 2;
+                const centerY = containerRef.current.clientHeight / 2;
+
+                setPan({
+                    x: centerX - active.centroid.x + PADDING_LEFT,
+                    y: centerY - active.centroid.y + PADDING_TOP
+                });
+            }
+        }
+    }, [loading, constellations]);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+
         const active = constellations.find(c => c.isActive);
-        
-        if (active && containerRef.current) {
+        if (active) {
             const centerX = containerRef.current.clientWidth / 2;
             const centerY = containerRef.current.clientHeight / 2;
-            
+
             setPan({
                 x: centerX - active.centroid.x + PADDING_LEFT,
                 y: centerY - active.centroid.y + PADDING_TOP
             });
         }
-    }
-}, [loading, constellations]);
+    }, [constellations]);
+
+    const RESET_ZOOM = 1;
+
+    useEffect(() => {
+        const active = constellations.find(c => c.isActive);
+        if (!active || !containerRef.current) return;
+
+        requestAnimationFrame(() => {
+            if (!containerRef.current) return;
+
+            const centerX = containerRef.current.clientWidth / 2;
+            const centerY = containerRef.current.clientHeight / 2;
+
+            setZoom(RESET_ZOOM);
+
+            const targetX = centerX - active.centroid.x + PADDING_LEFT;
+            const targetY = centerY - active.centroid.y + PADDING_TOP;
+
+            setPan({ x: targetX, y: targetY });
+        });
+    }, [constellations]);
 
     if (loading) {
         return (
@@ -310,7 +404,7 @@ export function StarMap() {
         );
     }
 
-    const active    = constellations.find(c => c.isActive);
+    const active = constellations.find(c => c.isActive);
     const graveyard = constellations.filter(c => !c.isActive);
 
     const activeOffsetX = active ? viewportCenter.x - active.centroid.x : viewportCenter.x;
@@ -318,15 +412,43 @@ export function StarMap() {
 
     const graveyardPositions = graveyard.map((c, i) => {
         const angle = (i / Math.max(graveyard.length, 1)) * 360 - 90;
-        const rad   = (angle * Math.PI) / 180;
-        const cx    = viewportCenter.x + Math.cos(rad) * GRAVEYARD_RADIUS;
-        const cy    = viewportCenter.y + Math.sin(rad) * GRAVEYARD_RADIUS;
+        const rad = (angle * Math.PI) / 180;
+        const cx = viewportCenter.x + Math.cos(rad) * GRAVEYARD_RADIUS;
+        const cy = viewportCenter.y + Math.sin(rad) * GRAVEYARD_RADIUS;
         return {
             constellation: c,
             offsetX: cx - c.centroid.x,
             offsetY: cy - c.centroid.y,
         };
     });
+
+    const handleDeleteStar = async (starId: string) => {
+        try {
+            await deleteStar(starId);
+            setConstellations(prev => {
+                const updated = prev.map(c => {
+                    const nextStars = c.stars.filter(s => s.id !== starId);
+                    if (nextStars.length === 0) return null;
+                    const wellnessById: Record<string, number> = {};
+                    nextStars.forEach(s => wellnessById[s.id] = s.wellness);
+                    return {
+                        ...c,
+                        stars: nextStars,
+                        edges: buildEdges(nextStars, wellnessById),
+                        centroid: {
+                            x: nextStars.reduce((s, st) => s + st.x, 0) / nextStars.length,
+                            y: nextStars.reduce((s, st) => s + st.y, 0) / nextStars.length
+                        }
+                    };
+                }).filter(c => c !== null) as ConstellationData[];
+                return updated;
+            });
+            setSelectedStar(null);
+        } catch (err) {
+            alert("Failed to remove star.");
+        }
+    };
+
 
     return (
         <div className={styles.container} ref={containerRef}>
@@ -347,13 +469,13 @@ export function StarMap() {
                     </div>
                 )}
             </div>
-
             {selectedStar && (
                 <JournalModal
                     star={selectedStar}
                     onClose={() => setSelectedStar(null)}
+                    onDelete={handleDeleteStar}
                 />
             )}
         </div>
     );
-}
+};

@@ -3,6 +3,7 @@ import styles from './AddictionManager.module.css';
 import { useAddiction } from '../context/AddictionContext';
 import TrashIcon from '../assets/trash-icon.png';
 import { ADDICTIONS_LIST } from '../constants/addictions';
+import { ConfirmationModal } from './ConfirmationModal';
 
 function getLatestReferenceDate(addiction: { relapses: string[]; startDate: string }) {
     if (!addiction.relapses.length) return addiction.startDate;
@@ -81,7 +82,7 @@ export function AddictionManager() {
                                         >
                                             {isCompleted
                                                 ? <span className={styles.progressValue}>🔥 {streaks}</span>
-                                                : <span className={styles.progressValue}>{`${cycleDay} / 30`}</span>
+                                                : <span className={styles.progressValue}>{`${cycleDay} / 14`}</span>
                                             }
                                         </div>
                                         <div className={styles.addictionTextStack}>
@@ -146,16 +147,13 @@ export function AddictionManager() {
             </div>
 
             {addictionToDelete && (
-                <div className={styles.modalOverlay} onClick={() => setAddictionToDelete(null)}>
-                    <div className={styles.confirmationModal} onClick={(e) => e.stopPropagation()}>
-                        <h3>Remove Addiction?</h3>
-                        <p>Are you sure you want to remove <strong>{addictionToDelete}</strong>?</p>
-                        <div className={styles.modalButtons}>
-                            <button className={styles.cancelButton} onClick={() => setAddictionToDelete(null)}>Cancel</button>
-                            <button className={styles.confirmButton} onClick={() => { removeAddiction(addictionToDelete); setAddictionToDelete(null); }}>Remove</button>
-                        </div>
-                    </div>
-                </div>
+                <ConfirmationModal
+                    title="Remove Addiction?"
+                    message={<>Are you sure you want to remove <strong>{addictionToDelete}</strong>?</>}
+                    confirmLabel="Remove"
+                    onConfirm={() => { removeAddiction(addictionToDelete); setAddictionToDelete(null); }}
+                    onCancel={() => setAddictionToDelete(null)}
+                />
             )}
         </>
     );

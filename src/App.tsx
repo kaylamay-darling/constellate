@@ -26,7 +26,6 @@ const TOOL_LABELS: Record<ModalID, string> = {
 };
 
 
-
 const SobrietyTracking = () => (
   <div>
     <p>Track your sobriety progress here.</p>
@@ -75,7 +74,10 @@ function App() {
 
   const renderTool = (): ReactNode => {
     switch (activeView) {
-      case 'journal': return <Journal onClose={() => setActiveView(null)} />;
+      case 'journal': return <Journal
+        onClose={() => setActiveView(null)}
+        onEntrySaved={() => setStarMapKey(k => k + 1)}
+      />;
       case 'sobriety-manage': return <AddictionManager />;
       case 'sobriety-track': return <SobrietyTracking />;
       case 'rescue-aid': return <RescueAid />;
@@ -85,10 +87,12 @@ function App() {
 
   const toolLabel = activeView ? TOOL_LABELS[activeView] : '';
 
+  const [starMapKey, setStarMapKey] = useState(0);
+
   return (
     <AuthProvider>
       <div className={styles.appContainer}>
-        <StarMap/>
+        <StarMap key={starMapKey} />
         <header className={styles.header}>
           <Navigation />
         </header>
@@ -118,8 +122,8 @@ function App() {
         <LoginModal />
         <LogoutModal />
       </div>
-      </AuthProvider>
-      );
+    </AuthProvider>
+  );
 }
 
-      export default App;
+export default App;
