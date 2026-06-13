@@ -198,7 +198,6 @@ export function StarMap() {
     const panRef = useRef(pan);
     const isDraggingRef = useRef(false);
     const dragStartRef = useRef({ x: 0, y: 0 });
-    const touchStartRef = useRef({ x: 0, y: 0 });
 
     useEffect(() => { zoomRef.current = zoom; }, [zoom]);
     useEffect(() => { panRef.current = pan; }, [pan]);
