@@ -301,15 +301,13 @@ export function StarMap() {
 
     const handleTouchStart = useCallback((e: TouchEvent) => {
         if (isOverUI(e)) return;
-
         if (e.touches.length === 1) {
-            const touch = e.touches[0];
             isDraggingRef.current = true;
-            touchStartRef.current = {
+            const touch = e.touches[0];
+            dragStartRef.current = {
                 x: touch.clientX - panRef.current.x,
-                y: touch.clientY - panRef.current.y,
+                y: touch.clientY - panRef.current.y
             };
-            return;
         }
 
         if (e.touches.length === 2) {
@@ -326,16 +324,14 @@ export function StarMap() {
     }, [isOverUI]);
 
     const handleTouchMove = useCallback((e: TouchEvent) => {
-        if (isOverUI(e)) return;
-
         if (e.touches.length === 1 && isDraggingRef.current) {
             e.preventDefault();
             const touch = e.touches[0];
+
             setPan({
-                x: touch.clientX - touchStartRef.current.x,
-                y: touch.clientY - touchStartRef.current.y,
+                x: touch.clientX - dragStartRef.current.x,
+                y: touch.clientY - dragStartRef.current.y,
             });
-            return;
         }
 
         if (e.touches.length === 2 && pinchStartDistRef.current !== null) {
