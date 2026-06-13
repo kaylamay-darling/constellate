@@ -353,16 +353,15 @@ export function StarMap() {
     useEffect(() => {
         const el = containerRef.current;
         if (!el) return;
-        el.addEventListener('touchstart', handleTouchStart, { passive: false });
-        el.addEventListener('touchmove', handleTouchMove, { passive: false });
-        el.addEventListener('touchend', handleTouchEnd);
+        el.addEventListener('touchstart', handleTouchStart, { passive: false, capture: true });
+        el.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
+        el.addEventListener('touchend', handleTouchEnd, { capture: true });
         return () => {
-            el.removeEventListener('touchstart', handleTouchStart);
-            el.removeEventListener('touchmove', handleTouchMove);
-            el.removeEventListener('touchend', handleTouchEnd);
+            el.removeEventListener('touchstart', handleTouchStart, { capture: true });
+            el.removeEventListener('touchmove', handleTouchMove, { capture: true });
+            el.removeEventListener('touchend', handleTouchEnd, { capture: true });
         };
     }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
-
     if (loading) {
         return (
             <div className={styles.container} ref={containerRef}>
@@ -422,7 +421,11 @@ export function StarMap() {
 
 
     return (
-        <div className={styles.container} ref={containerRef}>
+        <div
+            className={styles.container}
+            ref={containerRef}
+            style={{ touchAction: 'none' }}
+        >
             <div
                 className={styles.map}
                 style={{
