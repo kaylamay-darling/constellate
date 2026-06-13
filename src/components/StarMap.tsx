@@ -300,6 +300,10 @@ export function StarMap() {
 
     const handleTouchStart = useCallback((e: TouchEvent) => {
         if (isOverUI(e)) return;
+        
+        // 1. Tell the browser we are handling the touch, not it
+        e.preventDefault(); 
+
         if (e.touches.length === 1) {
             isDraggingRef.current = true;
             const touch = e.touches[0];
@@ -310,11 +314,14 @@ export function StarMap() {
         }
 
         if (e.touches.length === 2) {
+            // 2. Kill any lingering drag state immediately when a second finger hits
             isDraggingRef.current = false;
+            
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
             pinchStartDistRef.current = Math.sqrt(dx * dx + dy * dy);
             pinchStartZoomRef.current = zoomRef.current;
+            
             const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
             const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
             const rect = containerRef.current?.getBoundingClientRect();
@@ -323,17 +330,23 @@ export function StarMap() {
     }, [isOverUI]);
 
     const handleTouchMove = useCallback((e: TouchEvent) => {
+        // 1. ADD THIS GUARD: If we are pinching, we absolutely should not be panning
+        if (e.touches.length === 2) {
+            isDraggingRef.current = false; 
+        }
+
+        // 2. Existing Panning Logic
         if (e.touches.length === 1 && isDraggingRef.current) {
             e.preventDefault();
             const touch = e.touches[0];
-
             setPan({
                 x: touch.clientX - dragStartRef.current.x,
                 y: touch.clientY - dragStartRef.current.y,
             });
-        }
-
-        if (e.touches.length === 2 && pinchStartDistRef.current !== null) {
+        } 
+        
+        // 3. Existing Zooming Logic
+        else if (e.touches.length === 2 && pinchStartDistRef.current !== null) {
             e.preventDefault();
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -341,7 +354,7 @@ export function StarMap() {
             const scale = dist / pinchStartDistRef.current;
             setZoom(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinchStartZoomRef.current * scale)));
         }
-    }, [isOverUI]);
+    }, [isOverUI]); // Keep your existing dependencies
 
     const handleTouchEnd = useCallback(() => {
         isDraggingRef.current = false;
