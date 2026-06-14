@@ -5,16 +5,13 @@ export interface StarData {
     id: string;
     created_at: string;
     entry: JournalEntry;
-
     x: number;
     y: number;
-
     size: number;
     brightness: number;
     color: number;
     twinkle: number;
     wellness: number;
-
     constellationId: number;
 }
 
@@ -34,9 +31,9 @@ export interface ConstellationData {
 
 const MIN_STEP            = 80;
 const MAX_STEP            = 200;
-const MAX_EDGE_DISTANCE   = MAX_STEP * 2.5;
-const MAX_NEIGHBORS       = 3;
 const BACKTRACK_THRESHOLD = 135;
+const DELAUNAY_PRUNE      = 0.8;
+const MAX_DELAUNAY_EDGE   = MAX_STEP * 3;
 
 function normalize(value: number, min: number, max: number): number {
     return (value - min) / (max - min);
@@ -93,8 +90,88 @@ function seededRandom(seed: number) {
         let t = seed ^ seed >>> 16; t = Math.imul(t, 0x21f0aaad);
         t = t ^ t >>> 15; t = Math.imul(t, 0x735a2d97);
         return ((t = t ^ t >>> 15) >>> 0) / 4294967296;
-    }
+    };
 }
+
+// --- Delaunay Triangulation (Bowyer-Watson) ---
+
+interface Triangle {
+    a: number; b: number; c: number;
+}
+
+function circumscribes(triangle: Triangle, stars: StarData[], px: number, py: number): boolean {
+    const ax = stars[triangle.a].x, ay = stars[triangle.a].y;
+    const bx = stars[triangle.b].x, by = stars[triangle.b].y;
+    const cx = stars[triangle.c].x, cy = stars[triangle.c].y;
+
+    const d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by));
+    if (Math.abs(d) < 1e-10) return false;
+
+    const ux = ((ax * ax + ay * ay) * (by - cy) + (bx * bx + by * by) * (cy - ay) + (cx * cx + cy * cy) * (ay - by)) / d;
+    const uy = ((ax * ax + ay * ay) * (cx - bx) + (bx * bx + by * by) * (ax - cx) + (cx * cx + cy * cy) * (bx - ax)) / d;
+
+    const dx = ax - ux, dy = ay - uy;
+    const r2 = dx * dx + dy * dy;
+    const ex = px - ux, ey = py - uy;
+    return ex * ex + ey * ey <= r2;
+}
+
+function delaunayTriangulate(stars: StarData[]): Triangle[] {
+    if (stars.length < 3) return [];
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const s of stars) {
+        minX = Math.min(minX, s.x); minY = Math.min(minY, s.y);
+        maxX = Math.max(maxX, s.x); maxY = Math.max(maxY, s.y);
+    }
+
+    const dx = maxX - minX, dy = maxY - minY;
+    const delta = Math.max(dx, dy) * 10;
+    const n = stars.length;
+
+    const superStars: StarData[] = [
+        ...stars,
+        { ...stars[0], x: minX - delta,            y: minY - delta,            id: '__s0' },
+        { ...stars[0], x: minX + 2 * delta + dx,   y: minY - delta,            id: '__s1' },
+        { ...stars[0], x: minX,                     y: minY + 2 * delta + dy,   id: '__s2' },
+    ];
+
+    let triangles: Triangle[] = [{ a: n, b: n + 1, c: n + 2 }];
+
+    for (let i = 0; i < n; i++) {
+        const px = stars[i].x, py = stars[i].y;
+        const badTriangles: Triangle[] = [];
+
+        for (const t of triangles) {
+            if (circumscribes(t, superStars, px, py)) {
+                badTriangles.push(t);
+            }
+        }
+
+        const polygon: [number, number][] = [];
+        for (const t of badTriangles) {
+            const edges: [number, number][] = [[t.a, t.b], [t.b, t.c], [t.c, t.a]];
+            for (const [ea, eb] of edges) {
+                const shared = badTriangles.some(other =>
+                    other !== t &&
+                    ((other.a === ea && other.b === eb) || (other.b === ea && other.a === eb) ||
+                     (other.b === ea && other.c === eb) || (other.c === ea && other.b === eb) ||
+                     (other.c === ea && other.a === eb) || (other.a === ea && other.c === eb))
+                );
+                if (!shared) polygon.push([ea, eb]);
+            }
+        }
+
+        triangles = triangles.filter(t => !badTriangles.includes(t));
+        for (const [ea, eb] of polygon) {
+            triangles.push({ a: ea, b: eb, c: i });
+        }
+    }
+
+    return triangles.filter(t => t.a < n && t.b < n && t.c < n);
+}
+
+// --- Edge Building ---
 
 export function buildEdges(
     stars: StarData[],
@@ -102,36 +179,55 @@ export function buildEdges(
 ): EdgeData[] {
     const edges: EdgeData[] = [];
     const added = new Set<string>();
-    
     const random = seededRandom(stars.length * 1000);
-    const PRUNE_CHANCE = 0.6;
 
-    for (let i = 0; i < stars.length; i++) {
-        const distances: { j: number; dist: number }[] = [];
+    // Pass 1 — sequential path edges (always kept, no pruning)
+    for (let i = 0; i < stars.length - 1; i++) {
+        const key = [stars[i].id, stars[i + 1].id].sort().join('-');
+        if (added.has(key)) continue;
+        added.add(key);
+        const deltaW = Math.abs(
+            (wellnessById[stars[i].id] ?? 0) - (wellnessById[stars[i + 1].id] ?? 0)
+        );
+        edges.push({
+            fromId: stars[i].id,
+            toId: stars[i + 1].id,
+            opacity: Math.min(1, deltaW * 2),
+        });
+    }
 
-        for (let j = 0; j < stars.length; j++) {
-            if (i === j) continue;
-            const dx = stars[i].x - stars[j].x;
-            const dy = stars[i].y - stars[j].y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist <= MAX_EDGE_DISTANCE) distances.push({ j, dist });
-        }
+    // Pass 2 — Delaunay triangulation edges with pruning
+    const triangles = delaunayTriangulate(stars);
 
-        distances.sort((a, b) => a.dist - b.dist);
+    for (const tri of triangles) {
+        const triEdges: [number, number][] = [
+            [tri.a, tri.b],
+            [tri.b, tri.c],
+            [tri.c, tri.a],
+        ];
 
-        for (const { j } of distances.slice(0, MAX_NEIGHBORS)) {
-            if (random() < PRUNE_CHANCE) continue;
-            const key = [stars[i].id, stars[j].id].sort().join('-');
+        for (const [ia, ib] of triEdges) {
+            const key = [stars[ia].id, stars[ib].id].sort().join('-');
+
+            // Skip if already a path edge
             if (added.has(key)) continue;
+
+            // Skip if too far apart
+            const dx = stars[ia].x - stars[ib].x;
+            const dy = stars[ia].y - stars[ib].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > MAX_DELAUNAY_EDGE) continue;
+
+            // Prune probabilistically
+            if (random() < DELAUNAY_PRUNE) continue;
+
             added.add(key);
-
             const deltaW = Math.abs(
-                wellnessById[stars[i].id] - wellnessById[stars[j].id]
+                (wellnessById[stars[ia].id] ?? 0) - (wellnessById[stars[ib].id] ?? 0)
             );
-
             edges.push({
-                fromId: stars[i].id,
-                toId: stars[j].id,
+                fromId: stars[ia].id,
+                toId: stars[ib].id,
                 opacity: Math.min(1, deltaW * 2),
             });
         }
@@ -139,6 +235,8 @@ export function buildEdges(
 
     return edges;
 }
+
+// --- Main Fetch ---
 
 export async function fetchStarMap(): Promise<ConstellationData[]> {
     const { data: { user } } = await supabase.auth.getUser();
@@ -183,7 +281,6 @@ export async function fetchStarMap(): Promise<ConstellationData[]> {
         lastStrongStarIndex = 0;
     };
 
-    
     for (const entry of entries) {
         const pulse   = entry.daily_pulse;
         const mood    = pulse.mood    ?? 3;
@@ -221,15 +318,15 @@ export async function fetchStarMap(): Promise<ConstellationData[]> {
         }
 
         const star: StarData = {
-            id:             entry.id,
-            created_at:     entry.created_at,
+            id:          entry.id,
+            created_at:  entry.created_at,
             entry,
             x,
             y,
-            size:       mood,
-            brightness: energy_n,
-            color:      affect_n,
-            twinkle:    anxiety_n,
+            size:        mood,
+            brightness:  energy_n,
+            color:       affect_n,
+            twinkle:     anxiety_n,
             wellness,
             constellationId,
         };

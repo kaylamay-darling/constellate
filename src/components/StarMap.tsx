@@ -189,6 +189,13 @@ export function StarMap() {
     const panRef = useRef(pan);
     const isDraggingRef = useRef(false);
     const dragStartRef = useRef({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [zoomOrigin, setZoomOrigin] = useState({ x: 0, y: 0 });
+    const zoomRef = useRef(zoom);
+    const activePointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+    const lastPinchDistRef = useRef<number | null>(null);
+
+    useEffect(() => { zoomRef.current = zoom; }, [zoom]);
 
     useEffect(() => { panRef.current = pan; }, [pan]);
 
@@ -241,42 +248,116 @@ export function StarMap() {
     }, [updateViewportCenter]);
 
     useEffect(() => {
+        const handleWheel = (e: WheelEvent) => {
+            if (isOverUI(e as unknown as PointerEvent)) return;
+            e.preventDefault();
+            const rect = containerRef.current?.getBoundingClientRect();
+            if (!rect) return;
+            setZoomOrigin({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+            setZoom(prev => Math.min(3, Math.max(0.3, prev - e.deltaY * 0.001)));
+        };
+        window.addEventListener('wheel', handleWheel, { passive: false });
+        return () => window.removeEventListener('wheel', handleWheel);
+    }, [isOverUI]);
+
+    useEffect(() => {
         const el = containerRef.current;
         if (!el) return;
 
-        const handlePointerDown = (e: PointerEvent) => {
+const handlePointerDown = (e: PointerEvent) => {
     if (isOverUI(e)) return;
-    if (e.pointerType === 'touch' && e.isPrimary === false) return;
-    isDraggingRef.current = true;
-    dragStartRef.current = {
-        x: e.clientX - panRef.current.x,
-        y: e.clientY - panRef.current.y,
-    };
+
+    if (e.pointerType === 'touch') {
+        activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+        if (activePointersRef.current.size === 1) {
+            isDraggingRef.current = true;
+            dragStartRef.current = {
+                x: e.clientX - panRef.current.x,
+                y: e.clientY - panRef.current.y,
+            };
+        }
+
+        if (activePointersRef.current.size === 2) {
+            isDraggingRef.current = false;
+            const [a, b] = Array.from(activePointersRef.current.values());
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            lastPinchDistRef.current = Math.sqrt(dx * dx + dy * dy);
+            const rect = containerRef.current?.getBoundingClientRect();
+            if (rect) {
+                setZoomOrigin({
+                    x: (a.x + b.x) / 2 - rect.left,
+                    y: (a.y + b.y) / 2 - rect.top,
+                });
+            }
+        }
+    } else {
+        isDraggingRef.current = true;
+        dragStartRef.current = {
+            x: e.clientX - panRef.current.x,
+            y: e.clientY - panRef.current.y,
+        };
+    }
 };
 
 const handlePointerMove = (e: PointerEvent) => {
-    if (!isDraggingRef.current || !e.isPrimary) return;
-    setPan({
-        x: e.clientX - dragStartRef.current.x,
-        y: e.clientY - dragStartRef.current.y,
-    });
+    if (e.pointerType === 'touch') {
+        activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+        if (activePointersRef.current.size === 2) {
+            const [a, b] = Array.from(activePointersRef.current.values());
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (lastPinchDistRef.current !== null) {
+                const scale = dist / lastPinchDistRef.current;
+                setZoom(prev => Math.min(3, Math.max(0.3, prev * scale)));
+            }
+            lastPinchDistRef.current = dist;
+            return;
+        }
+
+        if (activePointersRef.current.size === 1 && isDraggingRef.current) {
+            setPan({
+                x: e.clientX - dragStartRef.current.x,
+                y: e.clientY - dragStartRef.current.y,
+            });
+        }
+    } else {
+        if (!isDraggingRef.current) return;
+        setPan({
+            x: e.clientX - dragStartRef.current.x,
+            y: e.clientY - dragStartRef.current.y,
+        });
+    }
 };
 
-const handlePointerUp = () => {
-    isDraggingRef.current = false;
+const handlePointerUp = (e: PointerEvent) => {
+    if (e.pointerType === 'touch') {
+        activePointersRef.current.delete(e.pointerId);
+        if (activePointersRef.current.size < 2) {
+            lastPinchDistRef.current = null;
+        }
+        if (activePointersRef.current.size === 0) {
+            isDraggingRef.current = false;
+        }
+    } else {
+        isDraggingRef.current = false;
+    }
 };
 
-window.addEventListener('pointerdown', handlePointerDown);
-window.addEventListener('pointermove', handlePointerMove);
-window.addEventListener('pointerup', handlePointerUp);
-window.addEventListener('pointercancel', handlePointerUp);
+        window.addEventListener('pointerdown', handlePointerDown);
+        window.addEventListener('pointermove', handlePointerMove);
+        window.addEventListener('pointerup', handlePointerUp);
+        window.addEventListener('pointercancel', handlePointerUp);
 
-return () => {
-    window.removeEventListener('pointerdown', handlePointerDown);
-    window.removeEventListener('pointermove', handlePointerMove);
-    window.removeEventListener('pointerup', handlePointerUp);
-    window.removeEventListener('pointercancel', handlePointerUp);
-};
+        return () => {
+            window.removeEventListener('pointerdown', handlePointerDown);
+            window.removeEventListener('pointermove', handlePointerMove);
+            window.removeEventListener('pointerup', handlePointerUp);
+            window.removeEventListener('pointercancel', handlePointerUp);
+        };
     }, [isOverUI]);
 
     if (loading) {
@@ -345,7 +426,8 @@ return () => {
             <div
                 className={styles.map}
                 style={{
-                    transform: `translate(${pan.x}px, ${pan.y}px)`,
+                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                    transformOrigin: `${zoomOrigin.x}px ${zoomOrigin.y}px`,
                     touchAction: 'none',
                 }}
             >
