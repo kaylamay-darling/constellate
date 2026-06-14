@@ -245,39 +245,38 @@ export function StarMap() {
         if (!el) return;
 
         const handlePointerDown = (e: PointerEvent) => {
-            if (isOverUI(e)) return;
-            if (e.pointerType === 'touch' && e.isPrimary === false) return;
-            el.setPointerCapture(e.pointerId);
-            isDraggingRef.current = true;
-            dragStartRef.current = {
-                x: e.clientX - panRef.current.x,
-                y: e.clientY - panRef.current.y,
-            };
-        };
+    if (isOverUI(e)) return;
+    if (e.pointerType === 'touch' && e.isPrimary === false) return;
+    isDraggingRef.current = true;
+    dragStartRef.current = {
+        x: e.clientX - panRef.current.x,
+        y: e.clientY - panRef.current.y,
+    };
+};
 
-        const handlePointerMove = (e: PointerEvent) => {
-            if (!isDraggingRef.current || !e.isPrimary) return;
-            setPan({
-                x: e.clientX - dragStartRef.current.x,
-                y: e.clientY - dragStartRef.current.y,
-            });
-        };
+const handlePointerMove = (e: PointerEvent) => {
+    if (!isDraggingRef.current || !e.isPrimary) return;
+    setPan({
+        x: e.clientX - dragStartRef.current.x,
+        y: e.clientY - dragStartRef.current.y,
+    });
+};
 
-        const handlePointerUp = () => {
-            isDraggingRef.current = false;
-        };
+const handlePointerUp = () => {
+    isDraggingRef.current = false;
+};
 
-        el.addEventListener('pointerdown', handlePointerDown);
-        el.addEventListener('pointermove', handlePointerMove);
-        el.addEventListener('pointerup', handlePointerUp);
-        el.addEventListener('pointercancel', handlePointerUp);
+window.addEventListener('pointerdown', handlePointerDown);
+window.addEventListener('pointermove', handlePointerMove);
+window.addEventListener('pointerup', handlePointerUp);
+window.addEventListener('pointercancel', handlePointerUp);
 
-        return () => {
-            el.removeEventListener('pointerdown', handlePointerDown);
-            el.removeEventListener('pointermove', handlePointerMove);
-            el.removeEventListener('pointerup', handlePointerUp);
-            el.removeEventListener('pointercancel', handlePointerUp);
-        };
+return () => {
+    window.removeEventListener('pointerdown', handlePointerDown);
+    window.removeEventListener('pointermove', handlePointerMove);
+    window.removeEventListener('pointerup', handlePointerUp);
+    window.removeEventListener('pointercancel', handlePointerUp);
+};
     }, [isOverUI]);
 
     if (loading) {
