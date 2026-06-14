@@ -438,6 +438,7 @@ export function StarMap() {
                 style={{
                     transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                     transformOrigin: `${zoomOrigin.x}px ${zoomOrigin.y}px`,
+                        touchAction: `none`
                 }}
             >
                 {graveyardPositions.map(({ constellation, offsetX, offsetY }) =>
