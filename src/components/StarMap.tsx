@@ -198,6 +198,7 @@ export function StarMap() {
     const panRef = useRef(pan);
     const isDraggingRef = useRef(false);
     const dragStartRef = useRef({ x: 0, y: 0 });
+    const touchCountRef = useRef(0);
 
     useEffect(() => { zoomRef.current = zoom; }, [zoom]);
     useEffect(() => { panRef.current = pan; }, [pan]);
@@ -299,69 +300,62 @@ export function StarMap() {
     }, [isOverUI]);
 
     const handleTouchStart = useCallback((e: TouchEvent) => {
-        if (isOverUI(e)) return;
-        
-        // 1. Tell the browser we are handling the touch, not it
-        e.preventDefault(); 
+    if (isOverUI(e)) return;
+    e.preventDefault();
+    touchCountRef.current = e.touches.length;
 
-        if (e.touches.length === 1) {
-            isDraggingRef.current = true;
-            const touch = e.touches[0];
-            dragStartRef.current = {
-                x: touch.clientX - panRef.current.x,
-                y: touch.clientY - panRef.current.y
-            };
-        }
+    if (e.touches.length === 1) {
+        isDraggingRef.current = true;
+        const touch = e.touches[0];
+        dragStartRef.current = {
+            x: touch.clientX - panRef.current.x,
+            y: touch.clientY - panRef.current.y
+        };
+    }
 
-        if (e.touches.length === 2) {
-            // 2. Kill any lingering drag state immediately when a second finger hits
-            isDraggingRef.current = false;
-            
-            const dx = e.touches[0].clientX - e.touches[1].clientX;
-            const dy = e.touches[0].clientY - e.touches[1].clientY;
-            pinchStartDistRef.current = Math.sqrt(dx * dx + dy * dy);
-            pinchStartZoomRef.current = zoomRef.current;
-            
-            const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-            const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-            const rect = containerRef.current?.getBoundingClientRect();
-            if (rect) setZoomOrigin({ x: midX - rect.left, y: midY - rect.top });
-        }
-    }, [isOverUI]);
+    if (e.touches.length === 2) {
+        isDraggingRef.current = false;
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        pinchStartDistRef.current = Math.sqrt(dx * dx + dy * dy);
+        pinchStartZoomRef.current = zoomRef.current;
+        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (rect) setZoomOrigin({ x: midX - rect.left, y: midY - rect.top });
+    }
+}, [isOverUI]);
 
     const handleTouchMove = useCallback((e: TouchEvent) => {
-        // 1. ADD THIS GUARD: If we are pinching, we absolutely should not be panning
-        if (e.touches.length === 2) {
-            isDraggingRef.current = false; 
-        }
-
-        // 2. Existing Panning Logic
-        if (e.touches.length === 1 && isDraggingRef.current) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            setPan({
-                x: touch.clientX - dragStartRef.current.x,
-                y: touch.clientY - dragStartRef.current.y,
-            });
-        } 
-        
-        // 3. Existing Zooming Logic
-        else if (e.touches.length === 2 && pinchStartDistRef.current !== null) {
-            e.preventDefault();
-            const dx = e.touches[0].clientX - e.touches[1].clientX;
-            const dy = e.touches[0].clientY - e.touches[1].clientY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const scale = dist / pinchStartDistRef.current;
-            setZoom(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinchStartZoomRef.current * scale)));
-        }
-    }, [isOverUI]); // Keep your existing dependencies
-
-    const handleTouchEnd = useCallback(() => {
+    e.preventDefault();
+    
+    if (touchCountRef.current === 2) {
         isDraggingRef.current = false;
-        if (pinchStartDistRef.current !== null) {
-            pinchStartDistRef.current = null;
-        }
-    }, []);
+        if (pinchStartDistRef.current === null) return;
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const scale = dist / pinchStartDistRef.current;
+        setZoom(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinchStartZoomRef.current * scale)));
+        return;
+    }
+
+    if (touchCountRef.current === 1 && isDraggingRef.current) {
+        const touch = e.touches[0];
+        setPan({
+            x: touch.clientX - dragStartRef.current.x,
+            y: touch.clientY - dragStartRef.current.y,
+        });
+    }
+}, []);
+
+    const handleTouchEnd = useCallback((e: TouchEvent) => {
+    touchCountRef.current = e.touches.length;
+    if (e.touches.length === 0) {
+        isDraggingRef.current = false;
+        pinchStartDistRef.current = null;
+    }
+}, []);
 
     useEffect(() => {
         const el = containerRef.current;
