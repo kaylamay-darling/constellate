@@ -104,7 +104,7 @@ export function buildEdges(
     const added = new Set<string>();
     
     const random = seededRandom(stars.length * 1000);
-    const PRUNE_CHANCE = 0.5;
+    const PRUNE_CHANCE = 0.6;
 
     for (let i = 0; i < stars.length; i++) {
         const distances: { j: number; dist: number }[] = [];
