@@ -10,7 +10,6 @@ import {
 import styles from './StarMap.module.css';
 import { ConfirmationModal } from './ConfirmationModal';
 
-
 const GRAVEYARD_RADIUS = 900;
 const STAR_BASE_SIZE = 6;
 const STAR_SIZE_SCALE = 4;
@@ -25,7 +24,7 @@ function interpolateColor(t: number): string {
 }
 
 function twinkleDuration(anxiety: number): number {
-    return - anxiety * 4;
+    return -anxiety * 4;
 }
 
 function starGlow(brightness: number, color: string): string {
@@ -190,7 +189,6 @@ export function StarMap() {
     const panRef = useRef(pan);
     const isDraggingRef = useRef(false);
     const dragStartRef = useRef({ x: 0, y: 0 });
-    const touchCountRef = useRef(0);
 
     useEffect(() => { panRef.current = pan; }, [pan]);
 
@@ -217,7 +215,6 @@ export function StarMap() {
     useLayoutEffect(() => {
         const frameId = requestAnimationFrame(updateViewportCenter);
         const timeoutId: ReturnType<typeof setTimeout> = setTimeout(updateViewportCenter, 150);
-
         updateViewportCenter();
         window.addEventListener('resize', updateViewportCenter);
         return () => {
@@ -227,7 +224,7 @@ export function StarMap() {
         };
     }, [updateViewportCenter]);
 
-    const isOverUI = useCallback((e: MouseEvent | TouchEvent) =>
+    const isOverUI = useCallback((e: MouseEvent | PointerEvent) =>
         !!(e.target as Element).closest(
             '[class*="modal"], [class*="Modal"], [class*="menu"], [class*="Menu"], [class*="addButton"], [class*="list"], aside, header'
         ), []);
@@ -244,76 +241,45 @@ export function StarMap() {
     }, [updateViewportCenter]);
 
     useEffect(() => {
-        const handleMouseDown = (e: MouseEvent) => {
+        const el = containerRef.current;
+        if (!el) return;
+
+        const handlePointerDown = (e: PointerEvent) => {
             if (isOverUI(e)) return;
+            if (e.pointerType === 'touch' && e.isPrimary === false) return;
+            el.setPointerCapture(e.pointerId);
             isDraggingRef.current = true;
-            dragStartRef.current = { x: e.clientX - panRef.current.x, y: e.clientY - panRef.current.y };
+            dragStartRef.current = {
+                x: e.clientX - panRef.current.x,
+                y: e.clientY - panRef.current.y,
+            };
         };
 
-        const handleMouseMove = (e: MouseEvent) => {
-            if (!isDraggingRef.current) return;
+        const handlePointerMove = (e: PointerEvent) => {
+            if (!isDraggingRef.current || !e.isPrimary) return;
             setPan({
                 x: e.clientX - dragStartRef.current.x,
                 y: e.clientY - dragStartRef.current.y,
             });
         };
 
-        const handleMouseUp = () => {
+        const handlePointerUp = () => {
             isDraggingRef.current = false;
         };
 
-        window.addEventListener('mousedown', handleMouseDown);
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp);
+        el.addEventListener('pointerdown', handlePointerDown);
+        el.addEventListener('pointermove', handlePointerMove);
+        el.addEventListener('pointerup', handlePointerUp);
+        el.addEventListener('pointercancel', handlePointerUp);
+
         return () => {
-            window.removeEventListener('mousedown', handleMouseDown);
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
+            el.removeEventListener('pointerdown', handlePointerDown);
+            el.removeEventListener('pointermove', handlePointerMove);
+            el.removeEventListener('pointerup', handlePointerUp);
+            el.removeEventListener('pointercancel', handlePointerUp);
         };
     }, [isOverUI]);
 
-   const handleTouchStart = useCallback((e: TouchEvent) => {
-    if (isOverUI(e)) return;
-    e.preventDefault();
-    touchCountRef.current = e.touches.length;
-
-    if (e.touches.length === 1) {
-        isDraggingRef.current = true;
-        const touch = e.touches[0];
-        dragStartRef.current = {
-            x: touch.clientX - panRef.current.x,
-            y: touch.clientY - panRef.current.y
-        };
-    }
-}, [isOverUI]);
-
-    const handleTouchMove = useCallback((e: TouchEvent) => {
-    e.preventDefault();
-    if (!isDraggingRef.current || e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    setPan({
-        x: touch.clientX - dragStartRef.current.x,
-        y: touch.clientY - dragStartRef.current.y,
-    });
-}, []);
-
-    const handleTouchEnd = useCallback(() => {
-    isDraggingRef.current = false;
-    touchCountRef.current = 0;
-}, []);
-
-    useEffect(() => {
-        const el = containerRef.current;
-        if (!el) return;
-        el.addEventListener('touchstart', handleTouchStart, { passive: false, capture: true });
-        el.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
-        el.addEventListener('touchend', handleTouchEnd, { capture: true });
-        return () => {
-            el.removeEventListener('touchstart', handleTouchStart, { capture: true });
-            el.removeEventListener('touchmove', handleTouchMove, { capture: true });
-            el.removeEventListener('touchend', handleTouchEnd, { capture: true });
-        };
-    }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
     if (loading) {
         return (
             <div className={styles.container} ref={containerRef}>
@@ -359,8 +325,8 @@ export function StarMap() {
                         edges: buildEdges(nextStars, wellnessById),
                         centroid: {
                             x: nextStars.reduce((s, st) => s + st.x, 0) / nextStars.length,
-                            y: nextStars.reduce((s, st) => s + st.y, 0) / nextStars.length
-                        }
+                            y: nextStars.reduce((s, st) => s + st.y, 0) / nextStars.length,
+                        },
                     };
                 }).filter(c => c !== null) as ConstellationData[];
                 return updated;
@@ -370,7 +336,6 @@ export function StarMap() {
             alert("Failed to remove star.");
         }
     };
-
 
     return (
         <div
@@ -382,7 +347,7 @@ export function StarMap() {
                 className={styles.map}
                 style={{
                     transform: `translate(${pan.x}px, ${pan.y}px)`,
-                    touchAction: `none`
+                    touchAction: 'none',
                 }}
             >
                 {graveyardPositions.map(({ constellation, offsetX, offsetY }) =>
@@ -390,6 +355,7 @@ export function StarMap() {
                 )}
                 {active && renderConstellation(active, activeOffsetX, activeOffsetY, setSelectedStar, false)}
             </div>
+
             {selectedStar && (
                 <JournalModal
                     star={selectedStar}
@@ -399,4 +365,4 @@ export function StarMap() {
             )}
         </div>
     );
-};
+}
