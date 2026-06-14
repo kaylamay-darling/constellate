@@ -14,9 +14,6 @@ import { ConfirmationModal } from './ConfirmationModal';
 const GRAVEYARD_RADIUS = 900;
 const STAR_BASE_SIZE = 6;
 const STAR_SIZE_SCALE = 4;
-const MIN_ZOOM = 0.3;
-const MAX_ZOOM = 3;
-const ZOOM_SENSITIVITY = 0.001;
 const PADDING_LEFT = 100;
 const PADDING_TOP = 30;
 
@@ -187,20 +184,14 @@ export function StarMap() {
     const [constellations, setConstellations] = useState<ConstellationData[]>([]);
     const [selectedStar, setSelectedStar] = useState<StarData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [zoom, setZoom] = useState(1);
-    const [zoomOrigin, setZoomOrigin] = useState({ x: 0, y: 0 });
     const [pan, setPan] = useState({ x: 0, y: 0 });
     const containerRef = useRef<HTMLDivElement>(null);
     const [viewportCenter, setViewportCenter] = useState({ x: 0, y: 0 });
-    const pinchStartDistRef = useRef<number | null>(null);
-    const pinchStartZoomRef = useRef<number>(1);
-    const zoomRef = useRef(zoom);
     const panRef = useRef(pan);
     const isDraggingRef = useRef(false);
     const dragStartRef = useRef({ x: 0, y: 0 });
     const touchCountRef = useRef(0);
 
-    useEffect(() => { zoomRef.current = zoom; }, [zoom]);
     useEffect(() => { panRef.current = pan; }, [pan]);
 
     const updateViewportCenter = useCallback(() => {
@@ -245,30 +236,12 @@ export function StarMap() {
         fetchStarMap()
             .then(data => {
                 setConstellations(data);
-                setZoom(1);
-                setZoomOrigin({ x: 0, y: 0 });
                 setPan({ x: 0, y: 0 });
                 updateViewportCenter();
             })
             .catch(console.error)
             .finally(() => setLoading(false));
     }, [updateViewportCenter]);
-
-    useEffect(() => {
-        const handleWheel = (e: WheelEvent) => {
-            if (isOverUI(e)) return;
-            e.preventDefault();
-            const rect = containerRef.current?.getBoundingClientRect();
-            if (!rect) return;
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            setZoomOrigin({ x: mouseX, y: mouseY });
-            setZoom(prev => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, prev - e.deltaY * ZOOM_SENSITIVITY)));
-        };
-
-        window.addEventListener('wheel', handleWheel, { passive: false });
-        return () => window.removeEventListener('wheel', handleWheel);
-    }, [isOverUI]);
 
     useEffect(() => {
         const handleMouseDown = (e: MouseEvent) => {
@@ -299,7 +272,7 @@ export function StarMap() {
         };
     }, [isOverUI]);
 
-    const handleTouchStart = useCallback((e: TouchEvent) => {
+   const handleTouchStart = useCallback((e: TouchEvent) => {
     if (isOverUI(e)) return;
     e.preventDefault();
     touchCountRef.current = e.touches.length;
@@ -312,49 +285,21 @@ export function StarMap() {
             y: touch.clientY - panRef.current.y
         };
     }
-
-    if (e.touches.length === 2) {
-        isDraggingRef.current = false;
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        pinchStartDistRef.current = Math.sqrt(dx * dx + dy * dy);
-        pinchStartZoomRef.current = zoomRef.current;
-        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-        const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-        const rect = containerRef.current?.getBoundingClientRect();
-        if (rect) setZoomOrigin({ x: midX - rect.left, y: midY - rect.top });
-    }
 }, [isOverUI]);
 
     const handleTouchMove = useCallback((e: TouchEvent) => {
     e.preventDefault();
-    
-    if (touchCountRef.current === 2) {
-        isDraggingRef.current = false;
-        if (pinchStartDistRef.current === null) return;
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const scale = dist / pinchStartDistRef.current;
-        setZoom(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinchStartZoomRef.current * scale)));
-        return;
-    }
-
-    if (touchCountRef.current === 1 && isDraggingRef.current) {
-        const touch = e.touches[0];
-        setPan({
-            x: touch.clientX - dragStartRef.current.x,
-            y: touch.clientY - dragStartRef.current.y,
-        });
-    }
+    if (!isDraggingRef.current || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    setPan({
+        x: touch.clientX - dragStartRef.current.x,
+        y: touch.clientY - dragStartRef.current.y,
+    });
 }, []);
 
-    const handleTouchEnd = useCallback((e: TouchEvent) => {
-    touchCountRef.current = e.touches.length;
-    if (e.touches.length === 0) {
-        isDraggingRef.current = false;
-        pinchStartDistRef.current = null;
-    }
+    const handleTouchEnd = useCallback(() => {
+    isDraggingRef.current = false;
+    touchCountRef.current = 0;
 }, []);
 
     useEffect(() => {
@@ -436,9 +381,8 @@ export function StarMap() {
             <div
                 className={styles.map}
                 style={{
-                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-                    transformOrigin: `${zoomOrigin.x}px ${zoomOrigin.y}px`,
-                        touchAction: `none`
+                    transform: `translate(${pan.x}px, ${pan.y}px)`,
+                    touchAction: `none`
                 }}
             >
                 {graveyardPositions.map(({ constellation, offsetX, offsetY }) =>
