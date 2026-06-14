@@ -227,7 +227,7 @@ export function StarMap() {
         };
     }, [updateViewportCenter]);
 
-    const isOverUI = useCallback((e: MouseEvent | WheelEvent | TouchEvent) =>
+    const isOverUI = useCallback((e: MouseEvent | TouchEvent) =>
         !!(e.target as Element).closest(
             '[class*="modal"], [class*="Modal"], [class*="menu"], [class*="Menu"], [class*="addButton"], [class*="list"], aside, header'
         ), []);
